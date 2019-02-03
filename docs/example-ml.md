@@ -55,7 +55,7 @@ class TaskTrain(d6tflow.tasks.TaskPickle): # save output as pickle
         self.save(model)
 
 # Check task dependencies and their execution status
-d6tflow.show(TaskTrain())
+d6tflow.preview(TaskTrain())
 
 '''
 └─--[TaskTrain-{'do_preprocess': 'True'} (PENDING)]
@@ -83,13 +83,15 @@ print(sklearn.metrics.accuracy_score(df_train['y'],model.predict(df_train.iloc[:
 # 0.9733333333333334
 
 # Intelligently rerun workflow after changing a preprocessing parameter
-d6tflow.show(TaskTrain(do_preprocess=False))
+d6tflow.preview(TaskTrain(do_preprocess=False))
 
 '''
 └─--[TaskTrain-{'do_preprocess': 'False'} (PENDING)]
    └─--[TaskPreprocess-{'do_preprocess': 'False'} (PENDING)]
       └─--[TaskGetData-{} (COMPLETE)] => this doesn't change and doesn't need to rerun
 '''
+
+d6tflow.run(TaskTrain(do_preprocess=False))
 
 
 ```

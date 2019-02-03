@@ -46,13 +46,8 @@ class CacheTarget(luigi.LocalTarget):
         cache[self.path] = df
         return self.path
 
-    def crc(self):
-        raise NotImplementedError('This class does not support CRC. You need to use a more specific target with CRC')
-
 class PdCacheTarget(CacheTarget):
-
-        def crc(self):
-            return d6tflow.utils.dfmd5(cache.get(self.path))
+    pass
 
 class _LocalPathTarget(luigi.LocalTarget):
     """
@@ -66,10 +61,6 @@ class _LocalPathTarget(luigi.LocalTarget):
         if self.exists():
             self.path.unlink()
         return not self.exists()
-
-    def crc(self):
-        return d6tflow.utils.filemd5(self.path)
-
 
 class DataTarget(_LocalPathTarget):
     """

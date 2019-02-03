@@ -23,6 +23,16 @@ The workflow involves chaining together parameterized tasks which pass multiple 
 * Load task output to pandas dataframe and python objects
 * Quickly share and hand off output data to others
 
+
+## Installation
+
+Install with `pip install d6tflow`. To update, run `pip install d6tflow -U --no-deps`.
+
+You can also clone the repo and run `pip install .`
+
+For dask support `pip install d6tflow[dask]`
+
+
 ## Example Output
 
 Below is sample output for a machine learning workflow. `TaskTrain` depends on `TaskPreprocess` which in turn depends on `TaskGetData`. In the end you want to train and evaluate a model but that requires running multiple dependencies. 
@@ -32,7 +42,7 @@ Below is sample output for a machine learning workflow. `TaskTrain` depends on `
 ```python
 
 # Check task dependencies and their execution status
-d6tflow.show(TaskTrain())
+d6tflow.preview(TaskTrain())
 
 '''
 └─--[TaskTrain-{'do_preprocess': 'True'} (PENDING)]
@@ -60,7 +70,7 @@ print(sklearn.metrics.accuracy_score(df_train['y'],model.predict(df_train.iloc[:
 # 0.9733333333333334
 
 # Intelligently rerun workflow after changing a preprocessing parameter
-d6tflow.show([TaskTrain(do_preprocess=False)])
+d6tflow.preview([TaskTrain(do_preprocess=False)])
 
 '''
 └─--[TaskTrain-{'do_preprocess': 'False'} (PENDING)]
@@ -68,17 +78,9 @@ d6tflow.show([TaskTrain(do_preprocess=False)])
       └─--[TaskGetData-{} (COMPLETE)] => this doesn't change and doesn't need to rerun
 '''
 
+d6tflow.run(TaskTrain(do_preprocess=False))
 
 ```
-
-## Installation
-
-
-Install with `pip install d6tflow`. To update, run `pip install d6tflow -U --no-deps`.
-
-You can also clone the repo and run `pip install .`
-
-For dask support `pip install d6tflow[dask]`
 
 ## Documentation
 

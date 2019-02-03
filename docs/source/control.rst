@@ -1,8 +1,20 @@
 Controlling Workflows
 ==============================================
 
+Previewing Execution Status
+------------------------------------------------------------
+
+Before running a workflow, you can check which tasks will be run.
+
+.. code-block:: python
+
+    d6tflow.preview(TaskTrain()) # single task
+    d6tflow.preview([TaskPreprocess(),TaskTrain()]) # multiple tasks
+
 Running Workflows
 ------------------------------------------------------------
+
+Now you can execute the workflow which creates the targets.
 
 .. code-block:: python
 
@@ -12,6 +24,8 @@ Running Workflows
 
 Showing Execution Status
 ------------------------------------------------------------
+
+If you change anything, you can check the latest execution status.
 
 .. code-block:: python
 
