@@ -90,9 +90,9 @@ https://d6tflow.readthedocs.io
 
 To quickly share workflow outputs, we recommend you make use of [d6tpipe](https://github.com/d6t/d6tpipe). See [Sharing Workflows and Outputs](https://d6tflow.readthedocs.io/en/latest/collaborate.html).
 
-## Faster Data Engineering
+## Accelerate Data Science
 
-Check out other d6t libraries to solve common data engineering problems, including  
+Check out other d6t libraries, including  
 * push/pull data: quickly get and share data files like code
 * import data: quickly ingest messy raw CSV and XLS files to pandas, SQL and more
 * join data: quickly combine multiple datasets using fuzzy joins
