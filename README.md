@@ -101,7 +101,7 @@ https://github.com/d6t/d6t-python
 
 ## Get notified
 
-`d6tpipe` is in active development. Join the [databolt blog](http://blog.databolt.tech) for the latest announcements and tips+tricks.
+`d6tflow` is in active development. Join the [databolt blog](http://blog.databolt.tech) for the latest announcements and tips+tricks.
 
 ## Collecting Errors Messages and Usage statistics
 
