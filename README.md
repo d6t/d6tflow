@@ -78,7 +78,7 @@ d6tflow.preview([TaskTrain(do_preprocess=False)])
       └─--[TaskGetData-{} (COMPLETE)] => this doesn't change and doesn't need to rerun
 '''
 
-d6tflow.run(TaskTrain(do_preprocess=False))
+d6tflow.run(TaskTrain(do_preprocess=False)) # execute with new parameter
 
 ```
 
@@ -93,9 +93,9 @@ To quickly share workflow outputs, we recommend you make use of [d6tpipe](https:
 ## Faster Data Engineering
 
 Check out other d6t libraries to solve common data engineering problems, including  
-* data ingest: quickly ingest raw data
-* fuzzy joins: quickly join data
-* data pipes: quickly share and distribute data
+* push/pull data: quickly get and share data files like code
+* import data: quickly ingest messy raw CSV and XLS files to pandas, SQL and more
+* join data: quickly combine multiple datasets using fuzzy joins
 
 https://github.com/d6t/d6t-python
 

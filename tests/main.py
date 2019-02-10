@@ -13,6 +13,7 @@ d6tcollect.submit=False
 
 import d6tflow
 pathdata = d6tflow.set_dir('tests-data/')
+d6tflow.settings.log_level = 'WARNING'
 
 # test data
 df = pd.DataFrame({'a': range(10)})
@@ -87,6 +88,15 @@ class Task2(d6tflow.tasks.TaskPqPandas):
     def run(self):
         df2fun(self)
 
+class Task3(d6tflow.tasks.TaskCachePandas):
+    do_preprocess = luigi.BoolParameter(default=True)
+    def requires(self):
+        return Task2()
+    def run(self):
+        if self.do_preprocess:
+            pass
+        self.save(self.input()['df2'].load())
+
 def test_tasks(cleanup):
     t1=Task1(); t2=Task2();
     assert not t1.complete(); assert not t2.complete();
@@ -151,7 +161,7 @@ def test_formats(cleanup):
         t1.invalidate()
 
 
-def test_params():
+def test_params(cleanup):
     class TaskParam(d6tflow.tasks.TaskCache):
         nrows = luigi.IntParameter(default=10)
         def run(self):
@@ -163,6 +173,92 @@ def test_params():
     t1.run()
     assert t1.complete(); assert not t2.complete();
 
+def test_external(cleanup):
+    class Task2(d6tflow.tasks.TaskPqPandas):
+        external = True
+
+    # t2=Task2()
+    # assert len(t2.requires())==0
+    # assert t2.output()['df2'].load().equals(dfc2)
+
+
+#********************************************
+# execution
+#********************************************
+def test_execute(cleanup):
+    # execute
+    t1=Task1(); t2=Task2();t3=Task3();
+    [t.invalidate() for t in [t1,t2,t3]]
+    d6tflow.run(t3)
+    assert all(t.complete() for t in [t1,t2,t3])
+    t1.invalidate(); t2.invalidate();
+    assert not t3.complete() # cascade upstream
+    d6tflow.settings.check_dependencies=False
+    assert t3.complete() # no cascade upstream
+    d6tflow.run([t3])
+    assert t3.complete() and not t1.complete()
+    d6tflow.settings.check_dependencies=True
+    d6tflow.run([t3])
+    assert all(t.complete() for t in [t1,t2,t3])
+
+    # forced single
+    class TaskTest(d6tflow.tasks.TaskCachePandas):
+        def run(self):
+            self.save(df)
+
+    d6tflow.run(TaskTest())
+    assert TaskTest().output().load().equals(df)
+    class TaskTest(d6tflow.tasks.TaskCachePandas):
+        def run(self):
+            self.save(df*2)
+
+    d6tflow.run(TaskTest())
+    assert TaskTest().output().load().equals(df)
+    d6tflow.run(TaskTest(),forced=TaskTest(),confirm=False)
+    assert TaskTest().output().load().equals(df*2)
+    d6tflow.run([TaskTest()],forced=[TaskTest()],confirm=False)
+
+    # forced flow
+    mtimes = [t1.output().path.stat().st_mtime,t2.output()['df2'].path.stat().st_mtime]
+    d6tflow.run(t3,forced=t1,confirm=False)
+    assert t1.output().path.stat().st_mtime>mtimes[0]
+    assert t2.output()['df2'].path.stat().st_mtime>mtimes[1]
+
+    # downstream
+    assert d6tflow.run(t3)
+    d6tflow.invalidate_downstream(t2, t3, confirm=False)
+    assert not (t2.complete() and t3.complete()) and t1.complete()
+
+    # upstream
+    assert d6tflow.run(t3)
+    d6tflow.invalidate_upstream(t3, confirm=False)
+    assert not all(t.complete() for t in [t1,t2,t3])
+
+def test_preview():
+    t1=Task1(); t2=Task2();t3=Task3();
+    d6tflow.invalidate_upstream(t3, confirm=False)
+
+    import io
+    from contextlib import redirect_stdout
+
+    with io.StringIO() as buf, redirect_stdout(buf):
+        d6tflow.preview(t3)
+        output = buf.getvalue()
+        assert output.count('PENDING')==3
+        assert output.count('COMPLETE')==0
+
+    with io.StringIO() as buf, redirect_stdout(buf):
+        d6tflow.run(t3)
+        d6tflow.preview(t3)
+        output = buf.getvalue()
+        assert output.count('PENDING')==0
+        assert output.count('COMPLETE')==3
+
+    with io.StringIO() as buf, redirect_stdout(buf):
+        d6tflow.preview(Task3(do_preprocess=False))
+        output = buf.getvalue()
+        assert output.count('PENDING')==1
+        assert output.count('COMPLETE')==2
 
 #********************************************
 # pipe

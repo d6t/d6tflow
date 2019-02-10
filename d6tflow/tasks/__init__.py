@@ -41,15 +41,12 @@ class TaskData(luigi.Task):
         return True
 
     @d6tcollect._collectClass
-    def complete(self):
+    def complete(self, cascade=True):
         """
         Invalidate a task, eg by deleting output file
         """
         complete = super().complete()
-        if d6tflow.settings.check_crc:
-            # todo: add CRC complete check
-            pass
-        if d6tflow.settings.check_dependencies and not getattr(self, 'external', False):
+        if d6tflow.settings.check_dependencies and cascade and not getattr(self, 'external', False):
             complete = complete and all([t.complete() for t in luigi.task.flatten(self.requires())])
         return complete
 

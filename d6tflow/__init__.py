@@ -69,10 +69,12 @@ def run(tasks, forced=None, confirm=True, workers=1, abort=True, **kwargs):
         tasks = [tasks]
 
     if forced is not None:
+        if not isinstance(forced, (list,)):
+            forced = [forced]
         invalidate = []
         for tf in forced:
             for tup in tasks:
-                invalidate.append(d6tflow.taskflow_upstream(tf,tup))
+                invalidate.append(d6tflow.taskflow_downstream(tf,tup))
         invalidate = set().union(*invalidate)
         invalidate = {t for t in invalidate if t.complete()}
         if len(invalidate)>0:
@@ -86,7 +88,7 @@ def run(tasks, forced=None, confirm=True, workers=1, abort=True, **kwargs):
             else:
                 return None
 
-    opts = {**{'workers':workers, 'local_scheduler':True},**kwargs}
+    opts = {**{'workers':workers, 'local_scheduler':True, 'log_level':d6tflow.settings.log_level},**kwargs}
     result = luigi.build(tasks, **opts)
     if abort and not result:
         raise RuntimeError('Exception found running flow, check trace')

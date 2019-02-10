@@ -43,6 +43,27 @@ You can always run single tasks by calling the `run()` function. This is useful 
     # forcing execution
     TaskTrain().run()
 
+
+Manually Forcing Task Reset and Rerun
+------------------------------------------------------------
+
+You have several options to force tasks to reset and rerun.
+
+.. code-block:: python
+
+    # force execution including downstream tasks
+    d6tflow.run([TaskTrain()],force=[TaskGetData()])
+
+    # reset single task
+    TaskGetData().invalidate()
+
+    # reset all downstream task output
+    d6tflow.invalidate_downstream(TaskGetData(), TaskTrain())
+
+    # reset all upstream task input
+    d6tflow.invalidate_upstream(TaskTrain())
+    
+
 When to reset and rerun tasks?
 ------------------------------------------------------------
 
@@ -102,24 +123,4 @@ Handling Code Change
 ------------------------------------------------------------
 
 Code changes likely lead to data changes. Code changes are difficult to detect and it is best if you manually force tasks to rerun. 
-
-Manually Forcing Task Reset and Rerun
-------------------------------------------------------------
-
-You have several options to force tasks to reset and rerun.
-
-.. code-block:: python
-
-    # force execution including downstream tasks
-    d6tflow.run([TaskTrain()],force=[TaskGetData()])
-
-    # reset single task
-    TaskGetData().invalidate()
-
-    # reset all downstream task output
-    d6tflow.invalidate_downstream(TaskGetData(), TaskTrain())
-
-    # reset all upstream task input
-    d6tflow.invalidate_upstream(TaskTrain())
-    
 

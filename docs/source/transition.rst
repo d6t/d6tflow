@@ -7,7 +7,7 @@ Problems with your current workflow
 Your current workflow probably chains several functions together like in the example below. While quick, it likely has many problems:  
 
 * it doesn't scale well as you add complexity
-* you have to manually keep track of functions were run with which parameter
+* you have to manually keep track of which functions were run with which parameter
 * you have to manually keep track of where data is saved
 * pickle files are neither compressed nor portable
 * data files get mixed with code files

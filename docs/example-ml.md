@@ -91,7 +91,7 @@ d6tflow.preview(TaskTrain(do_preprocess=False))
       └─--[TaskGetData-{} (COMPLETE)] => this doesn't change and doesn't need to rerun
 '''
 
-d6tflow.run(TaskTrain(do_preprocess=False))
+d6tflow.run(TaskTrain(do_preprocess=False)) # execute with new parameter
 
 
 ```
