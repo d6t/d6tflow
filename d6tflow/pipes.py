@@ -8,40 +8,39 @@ except:
 
 
 @d6tcollect.collect
-def init(default_pipe_name, set_dir=True, profile=None, local=False, api=None, reset=False, **kwargs):
+def init(default_pipe_name, profile=None, local_pipe=False, local_api=False, reset=False, api=None, set_dir=True, **kwargs):
     """
     Initialize d6tpipe
 
     Args:
         default_pipe_name (str): name of pipe to store results. Override by setting Task.pipe attribute
-        set_dir (bool): if True, set d6tflow directory to default pipe directory
+        profile (str): name of d6tpipe profile to get api if api not provided
+        local_pipe (bool): use `PipeLocal()`
+        local_api (bool): use `APILocal()`
         reset (bool): reset api and pipe connection
         api (obj): d6tpipe api object. if not provided will be loaded
-        profile (str): name of d6tpipe profile to get api if api not provided
+        set_dir (bool): if True, set d6tflow directory to default pipe directory
     """
     if not d6tflow.settings.isinitpipe or reset:
-        if api is None:
-            if local:
-                d6tflow.cache.api = d6tpipe.APILocal(profile=profile, **kwargs)
-            else:
-                d6tflow.cache.api = d6tpipe.APIClient(profile=profile, **kwargs)
-        else:
-            d6tflow.cache.api = api
-
-        api_ = d6tflow.cache.api
         d6tflow.cache.pipe_default_name = default_pipe_name
-        pipe_ = d6tpipe.Pipe(d6tflow.cache.api, default_pipe_name)
+        if local_pipe:
+            pipe_ = d6tpipe.PipeLocal(default_pipe_name, profile=profile)
+        else:
+            if api is None:
+                if local_api:
+                    d6tflow.cache.api = d6tpipe.APILocal(profile=profile, **kwargs)
+                else:
+                    d6tflow.cache.api = d6tpipe.APIClient(profile=profile, **kwargs)
+            else:
+                d6tflow.cache.api = api
+
+            pipe_ = d6tpipe.Pipe(d6tflow.cache.api, default_pipe_name)
         d6tflow.cache.pipes[default_pipe_name] = pipe_
         if set_dir:
             d6tflow.settings.isinitpipe = False
             d6tflow.set_dir(pipe_.dir)
 
         d6tflow.settings.isinitpipe = True
-        return api_, pipe_
-    else:
-        api_ = d6tflow.cache.api
-        pipe_ = get_pipe(d6tflow.cache.pipe_default_name)
-        return api_, pipe_
 
 def _assertinit():
     if not d6tflow.settings.isinitpipe:

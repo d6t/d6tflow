@@ -11,7 +11,7 @@ import d6tflow.cache
 import d6tflow.settings
 from d6tflow.settings import dir, dirpath
 
-print('Welcome to d6tflow! We hope you find it useful. If you run into any problems please raise an issue on github at https://github.com/d6t/d6tflow')
+print('Welcome to d6tflow!')# We hope you find it useful. If you run into any problems please raise an issue on github at https://github.com/d6t/d6tflow')
 
 def set_dir(dir=None):
     """
@@ -52,7 +52,7 @@ def preview(tasks):
     for t in tasks:
         print(luigi.tools.deps_tree.print_tree(t))
 
-def run(tasks, forced=None, confirm=True, workers=1, abort=True, **kwargs):
+def run(tasks, forced=None, forced_all=False, confirm=True, workers=1, abort=True, **kwargs):
     """
     Run tasks locally. See luigi.build for additional details
 
@@ -68,6 +68,8 @@ def run(tasks, forced=None, confirm=True, workers=1, abort=True, **kwargs):
     if not isinstance(tasks, (list,)):
         tasks = [tasks]
 
+    if forced_all:
+        forced = tasks
     if forced is not None:
         if not isinstance(forced, (list,)):
             forced = [forced]
