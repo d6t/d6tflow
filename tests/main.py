@@ -2,7 +2,7 @@ import pytest
 import os
 import glob
 import shutil
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import pandas as pd
 import fuckit
 import warnings
@@ -309,7 +309,7 @@ def test_pipes(cleanup_pipe):
     pipe1 = t1.get_pipe()
     pipedir = pipe1.dirpath
     t1filepath = t1.output().path
-    t1file = str(t1filepath.relative_to(pipedir))
+    t1file = str(PurePosixPath(t1filepath.relative_to(pipedir)))
 
     d6tflow.preview(t1)
     assert d6tflow.run(t1)
@@ -320,7 +320,7 @@ def test_pipes(cleanup_pipe):
 
     assert pipe1.scan_remote(cached=False)[1] == []
     assert t1.pull_preview()==[]
-    assert t1.push_preview()==[str(t1file)]
+    assert t1.push_preview()==[t1file]
     assert d6tflow.pipes.all_push_preview(t1) == {cfg['d6tpipe_pipe1']:[t1file]}
     assert d6tflow.pipes.all_push(t1) == {cfg['d6tpipe_pipe1']:[t1file]}
 
@@ -356,7 +356,7 @@ def test_pipes(cleanup_pipe):
     pipe2 = t2.get_pipe()
     pipedir = t2.get_pipe().dirpath
     # assert False
-    t2files = [str(p.path.relative_to(pipedir)) for p in t2.output().values()]
+    t2files = [str(PurePosixPath(p.path.relative_to(pipedir))) for p in t2.output().values()]
 
     assert d6tflow.pipes.all_push_preview(t2) == {cfg['d6tpipe_pipe2']:t2files}
 

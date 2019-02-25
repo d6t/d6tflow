@@ -8,7 +8,7 @@ except:
 
 
 @d6tcollect.collect
-def init(default_pipe_name, profile=None, local_pipe=False, local_api=False, reset=False, api=None, set_dir=True, **kwargs):
+def init(default_pipe_name, profile=None, local_pipe=False, local_api=False, reset=False, api=None, set_dir=True, api_args=None, pipe_args=None):
     """
     Initialize d6tpipe
 
@@ -20,21 +20,25 @@ def init(default_pipe_name, profile=None, local_pipe=False, local_api=False, res
         reset (bool): reset api and pipe connection
         api (obj): d6tpipe api object. if not provided will be loaded
         set_dir (bool): if True, set d6tflow directory to default pipe directory
+        api_args (dir): arguments to pass to api
+        pipe_args (dir): arguments to pass to pipe
     """
     if not d6tflow.settings.isinitpipe or reset:
         d6tflow.cache.pipe_default_name = default_pipe_name
+        api_args = {} if api_args is None else api_args
+        pipe_args = {} if pipe_args is None else pipe_args
         if local_pipe:
             pipe_ = d6tpipe.PipeLocal(default_pipe_name, profile=profile)
         else:
             if api is None:
                 if local_api:
-                    d6tflow.cache.api = d6tpipe.APILocal(profile=profile, **kwargs)
+                    d6tflow.cache.api = d6tpipe.APILocal(profile=profile, **api_args)
                 else:
-                    d6tflow.cache.api = d6tpipe.APIClient(profile=profile, **kwargs)
+                    d6tflow.cache.api = d6tpipe.APIClient(profile=profile, **api_args)
             else:
                 d6tflow.cache.api = api
 
-            pipe_ = d6tpipe.Pipe(d6tflow.cache.api, default_pipe_name)
+            pipe_ = d6tpipe.Pipe(d6tflow.cache.api, default_pipe_name, **pipe_args)
         d6tflow.cache.pipes[default_pipe_name] = pipe_
         if set_dir:
             d6tflow.settings.isinitpipe = False

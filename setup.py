@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='d6tflow',
-    version='0.1.3',
+    version='0.1.4',
     packages=['d6tflow','d6tflow.targets','d6tflow.tasks'],
     url='https://github.com/d6t/d6tflow',
     license='MIT',
