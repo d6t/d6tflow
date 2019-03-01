@@ -47,7 +47,7 @@ class TaskData(luigi.Task):
         """
         complete = super().complete()
         if d6tflow.settings.check_dependencies and cascade and not getattr(self, 'external', False):
-            complete = complete and all([t.complete() for t in luigi.task.flatten(self.requires()) if not getattr(t, 'external', False)])
+            complete = complete and all([t.complete() for t in luigi.task.flatten(self.requires())])
         return complete
 
     def output(self):
