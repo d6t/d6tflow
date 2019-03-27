@@ -1,4 +1,4 @@
-Managing Tasks
+Managing Targets
 ==============================================
 
 What are targets?
