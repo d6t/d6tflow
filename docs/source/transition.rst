@@ -1,88 +1,68 @@
 Transition to d6tflow
 ==============================================
 
-Problems with your current workflow
+Current Workflow with Functions
 ------------------------------------------------------------
 
-Your current workflow probably chains several functions together like in the example below. While quick, it likely has many problems:  
-
-* it doesn't scale well as you add complexity
-* you have to manually keep track of which functions were run with which parameter
-* you have to manually keep track of where data is saved
-* pickle files are neither compressed nor portable
-* data files get mixed with code files
+Your code currently probably looks like the example below. How do you turn it into a d6tflow workflow?
 
 .. code-block:: python
 
     import pandas as pd
 
     def get_data():
-        data = download_data()
-        data = clean_data(data)
+        data = pd.read_csv('rawdata.csv')
+        data = clean(data)
         data.to_pickle('data.pkl')
 
     def preprocess(data):
-        data = apply_function(data)
+        data = scale(data)
         return data
 
-    # flow parameters
-    reload_source = True
-    do_preprocess = True
-
-    # run workflow
-    if reload_source:
-        get_data()
-
+    # execute workflow
+    get_data()
     df_train = pd.read_pickle('data.pkl')
+    do_preprocess = True
     if do_preprocess:
         df_train = preprocess(df_train)
-    model = sklearn.svm.SVC()
-    model.fit(df_train.iloc[:,:-1], df_train['y'])
-    print(sklearn.metrics.accuracy_score(df_train['y'],model.predict(df_train.iloc[:,:-1])))
 
 
-Benefits of d6tflow
+Target Workflow with d6tflow Tasks
 ------------------------------------------------------------
 
-Instead of chaining functions that look like: 
+In a d6tflow workflow, you define your own task classes and then execute the workflow by running the final downstream task which will automatically run required upstream depencies. 
+
+The function-based workflow example will transform to this:
 
 .. code-block:: python
 
-    def process_data(data, parameter):
+    import d6tflow
+    import pandas as pd
 
-        if parameter:
-            data = do_stuff(data)
-        else:
-            data = do_other_stuff(data)
+    class TaskGetData(d6tflow.tasks.TaskPqPandas):
 
-        data.to_pickle('data.pkl')
-        return data
+        # no dependency
 
-With d6tflow you chain tasks which look like this: 
+        def run(): # from `def get_data()`
+            data = pd.read_csv('rawdata.csv')
+            data = clean(data)
+            self.save(data) # save output data
 
-.. code-block:: python
-
-    class TaskProcess(d6tflow.tasks.TaskPqPandas): # define output format
-        parameter = luigi.BoolParameter(default=True) # define parameter
+    class TaskProcess(d6tflow.tasks.TaskPqPandas):
+        do_preprocess = luigi.BoolParameter(default=True) # optional parameter
 
         def requires(self):
             return TaskGetData() # define dependency
 
-        def run(self):
-            df_train = self.input().load() # load input data
-            if self.parameter: # process data
-                data = do_stuff(data)
-            else:
-                data = do_other_stuff(data)
+        def run(self): 
+            data = self.input().load() # load input data
+            if self.do_preprocess:
+                data = do_stuff(data) # # from `def preprocess(data)`
             self.save(data) # save output data
 
-The benefits of doings this are:
+    d6tflow.run(TaskProcess()) # execute task with dependencies
+    data = TaskProcess().output().load() # load output data
 
-* All tasks follow the same pattern no matter how complex your workflow gets
-* You have a scalable input `requires()` and processing function `run()`
-* If the input task is not complete it will automatically run before this task
-* You can quickly load input data without having to remember where it is saved
-* You can quickly save output data without having to remember where it is saved
-* If input data or parameters change, the function will automatically rerun
+Learn more about :doc:`Tasks <../tasks>` and :doc:`Execution <../run>`.
 
-The next section explains how these tasks work in more detail.
+Also see code template for a larger real-life project at https://github.com/d6t/d6tflow/tree/master/docs/template

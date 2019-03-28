@@ -1,10 +1,10 @@
-Controlling Workflows
+Running Workflows
 ==============================================
 
 Previewing Execution Status
 ------------------------------------------------------------
 
-Before running a workflow, you can check which tasks will be run.
+Running a task will automatically run all the upstream dependencies. Before running a workflow, you can preview which tasks will be run.
 
 .. code-block:: python
 
@@ -14,40 +14,46 @@ Before running a workflow, you can check which tasks will be run.
 Running Workflows
 ------------------------------------------------------------
 
-Now you can execute the workflow which creates the targets.
+When you run a workflow, it checks if all the dependencies are complete and if not it will run them. 
 
 .. code-block:: python
 
     d6tflow.run(TaskTrain()) # single task
     d6tflow.run([TaskPreprocess(),TaskTrain()]) # multiple tasks
 
-
-Showing Execution Status
+Debugging Failures
 ------------------------------------------------------------
 
-If you change anything, you can check the latest execution status.
+If a task fails, it will show the stack trace. You need to look further up in the stack trace to fine the line that caused the error. You can also set breakpoints in the task obviously.
 
 .. code-block:: python
 
-    d6tflow.show(TaskTrain()) # single task
-    d6tflow.show([TaskPreprocess(),TaskTrain()]) # multiple tasks
 
 
-Manually Running a Single Task
+
+How is a task marked complete?
 ------------------------------------------------------------
 
-You can always run single tasks by calling the `run()` function. This is useful during debugging. However, this will only run this one task and not take care of any downstream dependencies.
+Taks are complete when the output is saved.
 
 .. code-block:: python
 
-    # forcing execution
-    TaskTrain().run()
+    TaskTrain().complete() # status
+    TaskTrain().output().path # where is output saved?
+    TaskTrain().output()['output1'].path # multiple outputs
 
+If a task has parameters, it needs to be run separately for each parameter to also be complete when using different parameter settings.
 
-Manually Forcing Task Reset and Rerun
+.. code-block:: python
+
+    d6tflow.run(TaskTrain()) # default param
+    TaskTrain().complete() # True
+    TaskTrain(do_preprocess).complete() # False
+
+Rerun Tasks When You Make Changes
 ------------------------------------------------------------
 
-You have several options to force tasks to reset and rerun.
+You have several options to force tasks to reset and rerun. See sections below on how to handle parameter, data and code changes.
 
 .. code-block:: python
 
@@ -57,10 +63,10 @@ You have several options to force tasks to reset and rerun.
     # reset single task
     TaskGetData().invalidate()
 
-    # reset all downstream task output
+    # reset all downstream tasks
     d6tflow.invalidate_downstream(TaskGetData(), TaskTrain())
 
-    # reset all upstream task input
+    # reset all upstream tasks
     d6tflow.invalidate_upstream(TaskTrain())
     
 
@@ -123,4 +129,14 @@ Handling Code Change
 ------------------------------------------------------------
 
 Code changes likely lead to data changes. Code changes are difficult to detect and it is best if you manually force tasks to rerun. 
+
+Forcing a Single Task to Run
+------------------------------------------------------------
+
+You can always run single tasks by calling the `run()` function. This is useful during debugging. However, this will only run this one task and not take care of any downstream dependencies.
+
+.. code-block:: python
+
+    # forcing execution
+    TaskTrain().run()
 

@@ -33,7 +33,7 @@ User Guide
    quickstart
    transition
    tasks
-   control
+   run
    collaborate
    targets
    modules
