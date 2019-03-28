@@ -20,6 +20,15 @@ If you have dask installed you can define Dask Targets.
 
     from d6tflow.tasks.dask import PqDaskTarget
 
+Keras Model Targets
+------------------------------------------------------------
+
+For saving Keras model targets
+
+.. code-block:: python
+
+    from d6tflow.tasks.h5 import TaskH5Keras
+
 
 Writing Your Own Targets
 ------------------------------------------------------------

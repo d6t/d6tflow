@@ -5,7 +5,7 @@ import cfg, tasks, visualize
 d6tflow.show(tasks.TaskTrain())
 
 # Execute the model training task including dependencies
-d6tflow.run(tasks.TaskTrain())
+d6tflow.run(tasks.TaskTrain(), forced=tasks.TaskPreprocess())
 
 # use output
 visualize.accuracy()
@@ -20,7 +20,7 @@ importlib.reload(cfg)
 importlib.reload(tasks)
 
 # say you changed TaskGetData, reset all tasks depending on TaskGetData
-d6tflow.invalidate_downstream(TaskGetData(), TaskTrain())
+d6tflow.invalidate_downstream(tasks.TaskGetData(), tasks.TaskTrain())
 
 d6tflow.show(tasks.TaskTrain())
 d6tflow.run(tasks.TaskTrain())

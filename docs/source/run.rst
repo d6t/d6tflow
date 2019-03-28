@@ -14,7 +14,7 @@ Running a task will automatically run all the upstream dependencies. Before runn
 Running Workflows
 ------------------------------------------------------------
 
-When you run a workflow, it checks if all the dependencies are complete and if not it will run them. 
+To run all tasks in a workflow, run the downstream task you want to complete. It will check if all the upstream dependencies are complete and if not it will run them intelligently for you. 
 
 .. code-block:: python
 
@@ -24,11 +24,30 @@ When you run a workflow, it checks if all the dependencies are complete and if n
 Debugging Failures
 ------------------------------------------------------------
 
-If a task fails, it will show the stack trace. You need to look further up in the stack trace to fine the line that caused the error. You can also set breakpoints in the task obviously.
+If a task fails, it will show the stack trace. You need to look further up in the stack trace to find the line that caused the error. You can also set breakpoints in the task obviously.
 
-.. code-block:: python
+::
 
+    File "tasks.py", line 37, in run => error is here
+        1/0
+    ZeroDivisionError: division by zero
 
+    [...] => look further up to find error
+
+    ===== Luigi Execution Summary =====
+    Scheduled 2 tasks of which:
+    * 1 complete ones were encountered:
+        - 1 TaskPreprocess(do_preprocess=True)
+    * 1 failed:
+        - 1 TaskTrain(do_preprocess=True)
+    This progress looks :( because there were failed tasks
+    ===== Luigi Execution Summary =====
+
+     File 
+         raise RuntimeError('Exception found running flow, check trace')
+    RuntimeError: Exception found running flow, check trace
+
+    => look further up to find error
 
 
 How is a task marked complete?
@@ -42,7 +61,7 @@ Taks are complete when the output is saved.
     TaskTrain().output().path # where is output saved?
     TaskTrain().output()['output1'].path # multiple outputs
 
-If a task has parameters, it needs to be run separately for each parameter to also be complete when using different parameter settings.
+If a task has parameters, it needs to be run separately for each parameter to be complete when using different parameter settings.
 
 .. code-block:: python
 
@@ -71,7 +90,7 @@ You have several options to force tasks to reset and rerun. See sections below o
     
 
 When to reset and rerun tasks?
-------------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Typically you want to reset and rerun tasks when:
 
@@ -80,7 +99,7 @@ Typically you want to reset and rerun tasks when:
 * code changed
 
 Handling Parameter Change
-------------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As long as the parameter is defined in the task, d6tflow will automatically rerun tasks with different parameters. 
 
@@ -121,17 +140,17 @@ As an alternative to inheriting parameters, you can define defaults in a config 
 
 
 Handling Data Change
-------------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In future releases, d6tflow will automatically detect data changes. For now you have to manually reset tasks.
 
 Handling Code Change
-------------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Code changes likely lead to data changes. Code changes are difficult to detect and it is best if you manually force tasks to rerun. 
 
 Forcing a Single Task to Run
-------------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can always run single tasks by calling the `run()` function. This is useful during debugging. However, this will only run this one task and not take care of any downstream dependencies.
 
