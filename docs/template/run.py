@@ -5,7 +5,7 @@ import cfg, tasks, visualize
 d6tflow.show(tasks.TaskTrain())
 
 # Execute the model training task including dependencies
-d6tflow.run(tasks.TaskTrain(), forced=tasks.TaskPreprocess())
+d6tflow.run(tasks.TaskTrain())
 
 # use output
 visualize.accuracy()

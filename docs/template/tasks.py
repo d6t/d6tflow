@@ -17,7 +17,6 @@ class TaskGetData(d6tflow.tasks.TaskPqPandas):  # save dataframe as parquet
 
 class TaskPreprocess(d6tflow.tasks.TaskCachePandas):  # save data in memory
     do_preprocess = luigi.BoolParameter(default=True) # parameter for preprocessing yes/no
-    persist = ['data1','data2']
 
     def requires(self):
         return TaskGetData() # define dependency
@@ -26,7 +25,7 @@ class TaskPreprocess(d6tflow.tasks.TaskCachePandas):  # save data in memory
         df_train = self.input().load() # quickly load required data
         if self.do_preprocess:
             df_train.iloc[:,:-1] = sklearn.preprocessing.scale(df_train.iloc[:,:-1])
-        self.save({'a':df_train})
+        self.save(df_train)
 
 class TaskTrain(d6tflow.tasks.TaskPickle): # save output as pickle
     do_preprocess = luigi.BoolParameter(default=cfg.do_preprocess)
