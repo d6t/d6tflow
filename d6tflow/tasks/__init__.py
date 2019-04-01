@@ -179,6 +179,13 @@ class TaskCSVPandas(TaskData):
     target_class = d6tflow.targets.CSVPandasTarget
     target_ext = 'csv'
 
+class TaskExcelPandas(TaskData):
+    """
+    Task which saves to CSV
+    """
+    target_class = d6tflow.targets.ExcelPandasTarget
+    target_ext = 'xlsx'
+
 class TaskPqPandas(TaskData):
     """
     Task which saves to parquet

@@ -142,6 +142,38 @@ class CSVPandasTarget(DataTarget):
         opts = {**{'index':False},**kwargs}
         return super().save(df, 'to_csv', **opts)
 
+class ExcelPandasTarget(DataTarget):
+    """
+    Saves to Excel, loads to pandas dataframe
+
+    """
+    def load(self, cached=False, **kwargs):
+        """
+        Load from Excel to pandas dataframe
+
+        Args:
+            cached (bool): keep data cached in memory
+            **kwargs: arguments to pass to pd.read_csv
+
+        Returns: pandas dataframe
+
+        """
+        return super().load(pd.read_excel, cached, **kwargs)
+
+    def save(self, df, **kwargs):
+        """
+        Save dataframe to Excel
+
+        Args:
+            df (obj): pandas dataframe
+            kwargs : additional arguments to pass to df.to_csv
+
+        Returns: filename
+
+        """
+        opts = {**{'index':False},**kwargs}
+        return super().save(df, 'to_excel', **opts)
+
 class PqPandasTarget(DataTarget):
     """
     Saves to parquet, loads to pandas dataframe
@@ -171,7 +203,7 @@ class PqPandasTarget(DataTarget):
         Returns: filename
 
         """
-        opts = {**{'compression':'gzip'},**kwargs}
+        opts = {**{'compression':'gzip','engine':'pyarrow'},**kwargs}
         return super().save(df, 'to_parquet', **opts)
 
 
