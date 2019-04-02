@@ -37,8 +37,8 @@ For dask support `pip install d6tflow[dask]`
 
 Below is sample output for a machine learning workflow. `TaskTrain()` depends on `TaskPreprocess()` which in turn depends on `TaskGetData()`. In the end you want to train and evaluate a model but that requires running multiple dependencies. 
 
-**[See the full example here](docs/example-ml.md)**  
-**[Interactive mybinder example](https://mybinder.org/v2/gh/d6t/d6tflow/master?filepath=docs%2Fexample.ipynb)**
+**[See the full example here](http://tiny.cc/d6tflow-start-example)**  
+**[Interactive mybinder example](http://tiny.cc/d6tflow-start-interactive)**
 
 ```python
 
