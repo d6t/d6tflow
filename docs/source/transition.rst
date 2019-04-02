@@ -65,4 +65,7 @@ The function-based workflow example will transform to this:
 
 Learn more about :doc:`Writing and Managing Tasks <../tasks>` and :doc:`Running Workflows <../run>`.
 
-Also see code template for a larger real-life project at https://github.com/d6t/d6tflow/tree/master/docs/template
+Design Pattern Templates for Machine Learning Workflows
+------------------------------------------------------------
+
+See code templates for a larger real-life project at https://github.com/d6t/d6tflow-template. Clone & code!
