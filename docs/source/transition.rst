@@ -65,6 +65,11 @@ The function-based workflow example will transform to this:
 
 Learn more about :doc:`Writing and Managing Tasks <../tasks>` and :doc:`Running Workflows <../run>`.
 
+Interactive Notebook
+------------------------------------------------------------
+
+Live mybinder example http://tiny.cc/d6tflow-start-interactive
+
 Design Pattern Templates for Machine Learning Workflows
 ------------------------------------------------------------
 
