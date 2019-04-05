@@ -13,7 +13,7 @@ class TaskGetData(d6tflow.tasks.TaskPqPandas):  # save dataframe as parquet
         df_train['y'] = iris.target
         self.save(df_train) # quickly save dataframe
 
-class TaskPreprocess(d6tflow.tasks.TaskCachePandas):  # save data in memory
+class TaskPreprocess(d6tflow.tasks.TaskPqPandas):
     do_preprocess = luigi.BoolParameter(default=True) # parameter for preprocessing yes/no
 
     def requires(self):
