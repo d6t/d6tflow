@@ -30,7 +30,7 @@ Your code currently probably looks like the example below. How do you turn it in
 Workflow Using d6tflow Tasks
 ------------------------------------------------------------
 
-In a d6tflow workflow, you define your own task classes and then execute the workflow by running the final downstream task which will automatically run required upstream depencies. 
+In a d6tflow workflow, you define your own task classes and then execute the workflow by running the final downstream task which will automatically run required upstream dependencies. 
 
 The function-based workflow example will transform to this:
 
