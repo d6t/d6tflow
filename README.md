@@ -12,6 +12,8 @@ The workflow involves chaining together parameterized tasks which pass multiple 
 
 `d6tflow` to the rescue! **With d6tflow you can easily chain together complex data flows and execute them. You can quickly load input and output data for each task.** It makes your workflow very clear and intuitive.
 
+Read more at [4 Reasons Why Your Machine Learning Code is Probably Bad](https://github.com/d6t/d6t-python/blob/master/blogs/reasons-why-bad-ml-code.rst)
+
 ## What can d6tflow do for you?
 
 * Build a data workflow made up of tasks with dependencies and parameters
