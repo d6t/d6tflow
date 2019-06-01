@@ -4,21 +4,22 @@ Writing and Managing Tasks
 What are tasks?
 ------------------------------------------------------------
 
-Tasks are the main object you will be interacting with. They allow your to:
+Tasks are the main object you will be interacting with. They allow you to:
 
 * define input dependency tasks
-* process data
+* process data  
     * load input data from upstream tasks
     * save output data for downstream tasks
 * run tasks
 * load output data
 
-You write a your own tasks by inheriting from one of the predefined d6tflow task formats, for example pandas dataframes saved to parquet. 
+You write your own tasks by inheriting from one of the predefined d6tflow task formats, for example pandas dataframes saved to parquet. 
 
 .. code-block:: python
 
     class YourTask(d6tflow.tasks.TaskPqPandas):
 
+Additional details on how to write tasks is below. To run tasks see :doc:`Running Workflows <../run>`.
 
 Define Upstream Dependency Tasks
 ------------------------------------------------------------
@@ -96,9 +97,13 @@ Input data from upstream dependency tasks can be easily loaded in ``run()``
     class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
 
         def requires(self):
+            return TaskMultipleOutput1(), TaskMultipleOutput1()
+            # or 
             return {'data1':TaskGetData1(), 'data2':TaskGetData2()}
 
         def run(self):
+            data1, data2 = self.loadInputs()
+            # or
             data1 = self.input()['data1'].load()
             data2 = self.input()['data2'].load()
 
@@ -106,11 +111,16 @@ Input data from upstream dependency tasks can be easily loaded in ``run()``
     class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
 
         def requires(self):
+            return TaskMultipleOutput1(), TaskMultipleOutput1()
+            # or 
             return {'data1':TaskMultipleOutput1(), 'data2':TaskMultipleOutput1()}
 
         def run(self):
+            data1, data2 = self.loadInputs()
+            # or
             data1 = self.input()['data1']['output1'].load()
             data2 = self.input()['data2']['output1'].load()
+
 
 Load External Files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -130,7 +140,19 @@ You probably want to load external data which is not the output of a task. There
             # totally manual
             data = pd.read_parquet('/some/folder/file.pq')
 
+            # multiple files
+            from d6tstack.combine_csv import CombinerCSV
+            def do_stuff(df):
+                return df
+            df = CombinerCSV(glob.glob('*.csv'), apply_after_read=do_stuff).to_pandas)
+
+
 For more advanced options see :doc:`Sharing Workflows and Outputs <../collaborate>`
+
+Dynamic Inputs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+See :doc:`Dynamic Tasks <../advtasksdyn>`
 
 Save Output Data
 ------------------------------------------------------------
@@ -167,6 +189,11 @@ Output data by default is saved in ``data/``, you can check with
 
 You can change where data is saved using ``d6tflow.set_dir('data/')``. See advanced options for :doc:`Sharing Workflows and Outputs <../collaborate>`
 
+Changing Task Output Formats
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+See :doc:`Targets <../targets>`
+
 Running tasks
 ------------------------------------------------------------
 
@@ -182,6 +209,7 @@ Once a workflow is run and the task is complete, you can easily load its output 
     df = TaskSingleOutput().output().load()
     data1 = TaskMultipleOutput().output()['data1'].load()
     data2 = TaskMultipleOutput().output()['data2'].load()
+    data1, data2 = TaskMultipleOutput().loadOutputs()
 
 **Before you load output data you need to run the workflow**. See :doc:`run the workflow <../run>`. If a task has not been run, it will show
 
@@ -190,14 +218,9 @@ Once a workflow is run and the task is complete, you can easily load its output 
     raise RuntimeError('Target does not exist, make sure task is complete')
     RuntimeError: Target does not exist, make sure task is complete
 
-Changing Task Output Formats
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-See :doc:`Targets <../targets>`
-
-
 Putting it all together
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------------------------
 
-See https://github.com/d6t/d6tflow/blob/master/docs/example-ml.md
+See full example https://github.com/d6t/d6tflow/blob/master/docs/example-ml.md
 
+See real-life project template https://github.com/d6t/d6tflow-template

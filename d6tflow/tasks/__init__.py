@@ -29,11 +29,15 @@ class TaskData(luigi.Task):
     target_ext = 'ext'
     persist = ['data']
 
-    def invalidate(self):
+    def invalidate(self, confirm=True):
         """
         Invalidate a task, eg by deleting output file
         """
-        if self.complete():
+        if confirm:
+            c = input('Confirm invalidating task: {} (y/n)'.format(self.__class__.__qualname__))
+        else:
+            c = 'y'
+        if c=='y' and self.complete():
             if self.persist == ['data']:  # 1 data shortcut
                 self.output().invalidate()
             else:
@@ -75,22 +79,48 @@ class TaskData(luigi.Task):
             output = output['data']
         return output
 
-    def loadall(self, keys=None, cached=False):
+    def loadInputs(self, keys=None, cached=False):
         """
-        Load data from task to memory
+        Load all or several outputs from task
 
         Args:
             keys (list): list of data to load
+            as_dict (bool): cache data in memory
             cached (bool): cache data in memory
-            check_complete (bool): check if task is complete before loading
+
+        Returns: list or dict of all task output
+        """
+        input = self.input()
+        if isinstance(input, tuple):
+            data = [o.load() for o in input]
+        elif isinstance(input, dict):
+            keys = input.keys() if keys is None else keys
+            data = {k: v.load(cached) for k, v in self.input().items() if k in keys}
+            data = list(data.values())
+        else:
+            data = input.load()
+        return data
+
+    def loadOutputs(self, keys=None, as_dict=False, cached=False):
+        """
+        Load all or several outputs from task
+
+        Args:
+            keys (list): list of data to load
+            as_dict (bool): cache data in memory
+            cached (bool): cache data in memory
+
+        Returns: list or dict of all task output
         """
         if not self.complete():
             return RuntimeError('Cannot load, task not complete, run task first')
         keys = self.persist if keys is None else keys
         if self.persist==['data']: # 1 data shortcut
-            data = {'data':self.output().load()}
-        else:
-            data = {k: v.load(cached) for k, v in self.output().items() if k in keys}
+            return self.output().load()
+
+        data = {k: v.load(cached) for k, v in self.output().items() if k in keys}
+        if not as_dict:
+            data = list(data.values())
         return data
 
     def save(self, data):

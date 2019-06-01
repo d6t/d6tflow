@@ -24,6 +24,11 @@ Quickstart
 
 See https://github.com/d6t/d6tflow/blob/master/docs/example-ml.md
 
+Real-life project template
+------------------------------------------------------------
+
+https://github.com/d6t/d6tflow-template
+
 User Guide
 ------------------------------------------------------------
 
@@ -34,8 +39,10 @@ User Guide
    transition
    tasks
    run
-   collaborate
    targets
+   collaborate
+   advtasksdyn
+   advparam
    modules
 
 

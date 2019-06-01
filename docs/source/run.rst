@@ -1,7 +1,7 @@
-Running Workflows
+Running Tasks and Managing Workflows
 ==============================================
 
-Previewing Execution Status
+Previewing Task Execution Status
 ------------------------------------------------------------
 
 Running a task will automatically run all the upstream dependencies. Before running a workflow, you can preview which tasks will be run.
@@ -11,7 +11,7 @@ Running a task will automatically run all the upstream dependencies. Before runn
     d6tflow.preview(TaskTrain()) # single task
     d6tflow.preview([TaskPreprocess(),TaskTrain()]) # multiple tasks
 
-Running Workflows
+Running Multiple Tasks as Workflows
 ------------------------------------------------------------
 
 To run all tasks in a workflow, run the downstream task you want to complete. It will check if all the upstream dependencies are complete and if not it will run them intelligently for you. 
@@ -20,6 +20,51 @@ To run all tasks in a workflow, run the downstream task you want to complete. It
 
     d6tflow.run(TaskTrain()) # single task
     d6tflow.run([TaskPreprocess(),TaskTrain()]) # multiple tasks
+
+How is a task marked complete?
+------------------------------------------------------------
+
+Taks are complete when task output exists. This is typically the existance of a file, database table or cache. See :doc:`Task I/O Formats <../targets>` how task output is stored to understand what needs to exist for a task to be complete. 
+
+.. code-block:: python
+
+    TaskTrain().complete() # status
+    TaskTrain().output().path # where is output saved?
+    TaskTrain().output()['output1'].path # multiple outputs
+
+Task Completion with Parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If a task has parameters, it needs to be run separately for each parameter to be complete when using different parameter settings.
+
+.. code-block:: python
+
+    d6tflow.run(TaskTrain()) # default param
+    TaskTrain().complete() # True
+    TaskTrain(do_preprocess).complete() # False
+
+Disable Dependency Checks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, for a task to be complete, it checks if all dependencies are complete also, not just the task itself. To check if just the task is complete without checking dependencies, set `d6tflow.settings.check_dependencies=False`
+
+.. code-block:: python
+
+    TaskGetData().invalidate(confirm=False)
+    d6tflow.settings.check_dependencies=True # default
+    d6tflow.preview(TaskTrain()) # TaskGetData is pending so all tasks are pending
+    '''
+    └─--[TaskTrain-{'do_preprocess': 'True'} (PENDING)]
+       └─--[TaskPreprocess-{'do_preprocess': 'True'} (PENDING)]
+          └─--[TaskGetData-{} (PENDING)]
+    '''
+    d6tflow.settings.check_dependencies=False # deactivate dependency checks
+    d6tflow.preview(TaskTrain())
+    └─--[TaskTrain-{'do_preprocess': 'True'} (COMPLETE)]
+       └─--[TaskPreprocess-{'do_preprocess': 'True'} (COMPLETE)]
+          └─--[TaskGetData-{} (PENDING)]
+    d6tflow.settings.check_dependencies=True # set to default
+
 
 Debugging Failures
 ------------------------------------------------------------
@@ -49,25 +94,6 @@ If a task fails, it will show the stack trace. You need to look further up in th
 
     => look further up to find error
 
-
-How is a task marked complete?
-------------------------------------------------------------
-
-Taks are complete when the output is saved.
-
-.. code-block:: python
-
-    TaskTrain().complete() # status
-    TaskTrain().output().path # where is output saved?
-    TaskTrain().output()['output1'].path # multiple outputs
-
-If a task has parameters, it needs to be run separately for each parameter to be complete when using different parameter settings.
-
-.. code-block:: python
-
-    d6tflow.run(TaskTrain()) # default param
-    TaskTrain().complete() # True
-    TaskTrain(do_preprocess).complete() # False
 
 Rerun Tasks When You Make Changes
 ------------------------------------------------------------

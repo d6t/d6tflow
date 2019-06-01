@@ -2,6 +2,7 @@ import luigi
 import pandas as pd
 import json
 import pickle
+import pathlib
 
 #import d6tcollect
 
@@ -54,6 +55,11 @@ class _LocalPathTarget(luigi.LocalTarget):
     Local target with `self.path` as `pathlib.Path()`
 
     """
+
+    def __init__(self, path=None):
+        super().__init__(path)
+        self.path = pathlib.Path(path)
+
     def exists(self):
         return self.path.exists()
 

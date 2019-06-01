@@ -122,7 +122,7 @@ def _all_runfun(task, fun, push=False, **kwargs):
     def runfun(p):
         f = getattr(p, fun)
         return f(**kwargs)
-    return {pipe.pipe_name: runfun(pipe) for pipe in pipes.values()}
+    return {pipe.name: runfun(pipe) for pipe in pipes.values()}
 
 def all_pull(task, **kwargs):
     """

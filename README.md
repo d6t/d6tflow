@@ -12,7 +12,12 @@ The workflow involves chaining together parameterized tasks which pass multiple 
 
 `d6tflow` to the rescue! **With d6tflow you can easily chain together complex data flows and execute them. You can quickly load input and output data for each task.** It makes your workflow very clear and intuitive.
 
-Read more at [4 Reasons Why Your Machine Learning Code is Probably Bad](https://github.com/d6t/d6t-python/blob/master/blogs/reasons-why-bad-ml-code.rst)
+Read more at:  
+[4 Reasons Why Your Machine Learning Code is Probably Bad](https://github.com/d6t/d6t-python/blob/master/blogs/reasons-why-bad-ml-code.rst)  
+[How d6tflow is different from airflow/luigi](https://github.com/d6t/d6t-python/blob/master/blogs/datasci-dags-airflow-meetup.md)
+
+![Badge](https://www.kdnuggets.com/images/tkb-1904-p.png "Badge")
+![Badge](https://www.kdnuggets.com/images/tkb-1902-g.png "Badge")
 
 ## What can d6tflow do for you?
 
@@ -34,6 +39,7 @@ You can also clone the repo and run `pip install .`
 
 For dask support `pip install d6tflow[dask]`
 
+**Python3 only** You might need to call `pip3 install d6tflow` if you have not set python 3 as default.
 
 ## Example Output
 
@@ -54,7 +60,7 @@ d6tflow.preview(TaskTrain())
 '''
 
 # Execute the model training task including dependencies
-d6tflow.run([TaskTrain()])
+d6tflow.run(TaskTrain())
 
 '''
 ===== Execution Summary =====
@@ -73,7 +79,7 @@ print(sklearn.metrics.accuracy_score(df_train['y'],model.predict(df_train.iloc[:
 # 0.9733333333333334
 
 # Intelligently rerun workflow after changing a preprocessing parameter
-d6tflow.preview([TaskTrain(do_preprocess=False)])
+d6tflow.preview(TaskTrain(do_preprocess=False))
 
 '''
 └─--[TaskTrain-{'do_preprocess': 'False'} (PENDING)]
@@ -87,7 +93,9 @@ d6tflow.run(TaskTrain(do_preprocess=False)) # execute with new parameter
 
 ## Documentation
 
-https://d6tflow.readthedocs.io
+Library usage and reference https://d6tflow.readthedocs.io
+
+Real-life project template https://github.com/d6t/d6tflow-template
 
 ## d6tpipe Integration
 

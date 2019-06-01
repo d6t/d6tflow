@@ -1,3 +1,22 @@
+import d6tflow
+import pandas as pd
+
+class Task1(d6tflow.tasks.TaskPqPandas):
+    def run(self):
+        df = pd.DataFrame({'a': range(10)})
+        self.save(df)
+
+class TaskMultiInput(d6tflow.tasks.TaskCache):
+    def requires(self):
+        return {1: Task1(), 2: Task1()}
+
+    def run(self):
+        dft1, dft2 = self.loadInputs()
+        assert dft1.equals(dft2)
+
+TaskMultiInput().run()
+quit()
+
 import importlib
 import d6tflow
 d6tflow.tasks.TaskPqPandas

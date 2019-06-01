@@ -8,7 +8,7 @@ class TaskH5Pandas(TaskData):
     target_class = H5PandasTarget
     target_ext = 'hdf5'
 
-class TaskH5Keras(d6tflow.tasks.TaskData):
+class TaskH5Keras(TaskData):
     """
     Task which saves to HDF5
     """

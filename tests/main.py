@@ -88,13 +88,14 @@ class Task2(d6tflow.tasks.TaskPqPandas):
     def run(self):
         df2fun(self)
 
-class Task3(d6tflow.tasks.TaskCachePandas):
+class Task3(d6tflow.tasks.TaskPqPandas):
     do_preprocess = luigi.BoolParameter(default=True)
     def requires(self):
         return Task2()
     def run(self):
         if self.do_preprocess:
             pass
+        df2, df4 = self.loadInputs()
         self.save(self.input()['df2'].load())
 
 def test_tasks(cleanup):
@@ -103,7 +104,7 @@ def test_tasks(cleanup):
 
     t1.run()
     assert t1.complete()
-    assert t1.invalidate()
+    assert t1.invalidate(confirm=False)
     assert not t1.complete()
 
     assert d6tflow.run([Task2()])
@@ -111,14 +112,45 @@ def test_tasks(cleanup):
     assert (pathdata/'Task1'/'Task1__99914b932b-data.pq').exists()
     assert (pathdata/'Task2'/'Task2__99914b932b-df2.pq').exists()
 
+    # load outputs
     t1.output().load().equals(df)
-    t1.loadall()['data'].equals(df)
+    t1.loadOutputs(as_dict=True).equals(df)
+    t1.loadOutputs().equals(df)
 
     t2.output()['df2'].load().equals(dfc2)
-    t2.loadall()['df2'].equals(dfc2)
+    t2.loadOutputs(as_dict=True)['df2'].equals(dfc2)
+    df2, df4 = t2.loadOutputs()
+    df2.equals(dfc2)
+    df2, = t2.loadOutputs(keys=['df2'])
+    df2.equals(dfc2)
+
+    # test inputs
+    class TaskMultiInput(d6tflow.tasks.TaskCache):
+        def requires(self):
+            return Task1()
+        def run(self):
+            dft1 = self.loadInputs()
+            assert dft1.equals(df)
+    TaskMultiInput().run()
+
+    class TaskMultiInput(d6tflow.tasks.TaskCache):
+        def requires(self):
+            return Task1(), Task1()
+        def run(self):
+            dft1, dft2 = self.loadInputs()
+            assert dft1.equals(dft2)
+    TaskMultiInput().run()
+
+    class TaskMultiInput(d6tflow.tasks.TaskCache):
+        def requires(self):
+            return {1:Task1(), 2:Task1()}
+        def run(self):
+            dft1, dft2 = self.loadInputs()
+            assert dft1.equals(dft2)
+    TaskMultiInput().run()
 
     # check downstream incomplete
-    t1.invalidate()
+    t1.invalidate(confirm=False)
     assert not t2.complete()
     d6tflow.settings.check_dependencies=False
     assert t2.complete()
@@ -158,7 +190,7 @@ def test_formats(cleanup):
         ddf = dd.read_parquet(t1.output().path)
         from d6tflow.tasks.dask import TaskPqDask
         helper(ddf, TaskPqDask, 'pd')
-        t1.invalidate()
+        t1.invalidate(confirm=False)
 
 
 def test_params(cleanup):
@@ -188,10 +220,10 @@ def test_external(cleanup):
 def test_execute(cleanup):
     # execute
     t1=Task1(); t2=Task2();t3=Task3();
-    [t.invalidate() for t in [t1,t2,t3]]
+    [t.invalidate(confirm=False) for t in [t1,t2,t3]]
     d6tflow.run(t3)
     assert all(t.complete() for t in [t1,t2,t3])
-    t1.invalidate(); t2.invalidate();
+    t1.invalidate(confirm=False); t2.invalidate(confirm=False);
     assert not t3.complete() # cascade upstream
     d6tflow.settings.check_dependencies=False
     assert t3.complete() # no cascade upstream
@@ -223,6 +255,20 @@ def test_execute(cleanup):
     d6tflow.run(t3,forced=t1,confirm=False)
     assert t1.output().path.stat().st_mtime>mtimes[0]
     assert t2.output()['df2'].path.stat().st_mtime>mtimes[1]
+
+    # forced_all => run task3 only
+    mtimes = [t1.output().path.stat().st_mtime,t2.output()['df2'].path.stat().st_mtime,t3.output().path.stat().st_mtime]
+    d6tflow.run(t3,forced_all=True,confirm=False)
+    assert t1.output().path.stat().st_mtime==mtimes[0]
+    assert t2.output()['df2'].path.stat().st_mtime==mtimes[1]
+    assert t3.output().path.stat().st_mtime>mtimes[2]
+
+    # forced_all_upstream => run all tasks
+    mtimes = [t1.output().path.stat().st_mtime,t2.output()['df2'].path.stat().st_mtime,t3.output().path.stat().st_mtime]
+    d6tflow.run(t3,forced_all_upstream=True,confirm=False)
+    assert t1.output().path.stat().st_mtime>mtimes[0]
+    assert t2.output()['df2'].path.stat().st_mtime>mtimes[1]
+    assert t3.output().path.stat().st_mtime>mtimes[2]
 
     # downstream
     assert d6tflow.run(t3)
@@ -279,7 +325,7 @@ def cleanup_pipe():
     # d6tpipe.create_or_update_permissions(api1, cfg['d6tpipe_pipe1'], settings)
 
     pipe1 = d6tpipe.Pipe(api1, cfg['d6tpipe_pipe1'])
-    pipe1._empty_local(confirm=False,delete_all=True)
+    pipe1.delete_files_local(confirm=False,delete_all=True)
 
     d6tpipe.api.ConfigManager(profile=cfg['d6tpipe_profile2']).init({'filerepo': 'tests/d6tpipe-files2/'}, reset=True)
     api2 = d6tpipe.APIClient(profile=cfg['d6tpipe_profile2'])
@@ -287,19 +333,42 @@ def cleanup_pipe():
     # d6tpipe.api.create_pipe_with_remote(api2, {'name': cfg['d6tpipe_pipe2'], 'protocol': 'd6tfree'})
     pipe12 = d6tpipe.Pipe(api2, cfg['d6tpipe_pipe1'])
     pipe2 = d6tpipe.Pipe(api2, cfg['d6tpipe_pipe2'])
-    pipe12._empty_local(confirm=False,delete_all=True)
-    pipe2._empty_local(confirm=False,delete_all=True)
+    pipe12.delete_files_local(confirm=False,delete_all=True)
+    pipe2.delete_files_local(confirm=False,delete_all=True)
 
     yield api1, api2
 
-    pipe1._empty_local(confirm=False,delete_all=True)
-    pipe12._empty_local(confirm=False,delete_all=True)
-    pipe2._empty_local(confirm=False,delete_all=True)
+    pipe1.delete_files_local(confirm=False,delete_all=True)
+    pipe12.delete_files_local(confirm=False,delete_all=True)
+    pipe2.delete_files_local(confirm=False,delete_all=True)
 
-
-def test_pipes(cleanup_pipe):
+def test_pipes_base(cleanup_pipe):
     import d6tflow.pipes
     d6tflow.pipes.init(cfg['d6tpipe_pipe1'],profile=cfg['d6tpipe_profile'])
+
+    t1 = Task1()
+    pipe1 = d6tflow.pipes.get_pipe()
+    pipedir = pipe1.dirpath
+    t1filepath = t1.output().path
+    t1file = str(PurePosixPath(t1filepath.relative_to(pipedir)))
+
+    assert d6tflow.run(t1)
+    assert t1.complete()
+    with fuckit:
+        pipe1._pullpush_luigi([t1file], op='remove')
+    assert pipe1.push_preview()==[t1file]
+    assert pipe1.push()==[t1file]
+    assert pipe1.scan_remote(cached=False) == [t1file]
+    # cleanup
+    pipe1.delete_files(confirm=False, all_local=True)
+    assert pipe1.scan_remote(cached=False) == []
+
+def test_pipes_advanced(cleanup_pipe):
+    import d6tflow.pipes
+    d6tflow.pipes.init(cfg['d6tpipe_pipe1'],profile=cfg['d6tpipe_profile'], local_pipe=True, reset=True)
+    assert 'Local' in d6tflow.pipes.get_pipe().__class__.__name__
+    d6tflow.pipes.init(cfg['d6tpipe_pipe1'],profile=cfg['d6tpipe_profile'], reset=True)
+
 
     class Task1(d6tflow.tasks.TaskPqPandas):
         def run(self):
@@ -318,7 +387,7 @@ def test_pipes(cleanup_pipe):
     with fuckit:
         pipe1._pullpush_luigi([t1file], op='remove')
 
-    assert pipe1.scan_remote(cached=False)[1] == []
+    assert pipe1.scan_remote(cached=False) == []
     assert t1.pull_preview()==[]
     assert t1.push_preview()==[t1file]
     assert d6tflow.pipes.all_push_preview(t1) == {cfg['d6tpipe_pipe1']:[t1file]}
@@ -362,5 +431,5 @@ def test_pipes(cleanup_pipe):
 
     # cleanup
     pipe1._pullpush_luigi([t1file], op='remove')
-    assert pipe1.scan_remote(cached=False)[1] == []
+    assert pipe1.scan_remote(cached=False) == []
 

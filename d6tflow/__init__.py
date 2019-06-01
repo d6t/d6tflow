@@ -52,13 +52,15 @@ def preview(tasks):
     for t in tasks:
         print(luigi.tools.deps_tree.print_tree(t))
 
-def run(tasks, forced=None, forced_all=False, confirm=True, workers=1, abort=True, **kwargs):
+def run(tasks, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, **kwargs):
     """
     Run tasks locally. See luigi.build for additional details
 
     Args:
         tasks (obj, list): task or list of tasks
         forced (list): list of forced tasks
+        forced_all (bool): force all tasks
+        forced_all_upstream (bool): force all tasks including upstream
         confirm (list): confirm invalidating tasks
         workers (int): number of workers
         abort (bool): on errors raise exception
@@ -70,6 +72,9 @@ def run(tasks, forced=None, forced_all=False, confirm=True, workers=1, abort=Tru
 
     if forced_all:
         forced = tasks
+    if forced_all_upstream:
+        for t in tasks:
+            invalidate_upstream(t,confirm=confirm)
     if forced is not None:
         if not isinstance(forced, (list,)):
             forced = [forced]
@@ -86,7 +91,7 @@ def run(tasks, forced=None, forced_all=False, confirm=True, workers=1, abort=Tru
             else:
                 c = 'y'
             if c == 'y':
-                [t.invalidate() for t in invalidate]
+                [t.invalidate(confirm=False) for t in invalidate]
             else:
                 return None
 
@@ -186,7 +191,7 @@ def invalidate_upstream(task, confirm=True):
     else:
         c = 'y'
     if c=='y':
-        [t.invalidate() for t in tasks]
+        [t.invalidate(confirm=False) for t in tasks]
 
 def invalidate_downstream(task, task_downstream, confirm=True):
     """
@@ -211,7 +216,8 @@ def invalidate_downstream(task, task_downstream, confirm=True):
     else:
         c = 'y'
     if c=='y':
-        [t.invalidate() for t in tasks]
+        [t.invalidate(confirm=False) for t in tasks]
         return True
     else:
         return False
+
