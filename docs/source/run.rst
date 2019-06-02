@@ -46,7 +46,7 @@ If a task has parameters, it needs to be run separately for each parameter to be
 Disable Dependency Checks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-By default, for a task to be complete, it checks if all dependencies are complete also, not just the task itself. To check if just the task is complete without checking dependencies, set `d6tflow.settings.check_dependencies=False`
+By default, for a task to be complete, it checks if all dependencies are complete also, not just the task itself. To check if just the task is complete without checking dependencies, set ``d6tflow.settings.check_dependencies=False``
 
 .. code-block:: python
 
@@ -185,10 +185,10 @@ You can always run single tasks by calling the `run()` function. This is useful 
     # forcing execution
     TaskTrain().run()
 
-Controlling Log level
+Reducing Logging Output
 ------------------------------------------------------------
 
-You can control how much output is displayed.
+You can control how much output is displayed by changing the log level.
 
 .. code-block:: python
 

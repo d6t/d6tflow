@@ -4,7 +4,7 @@ Task I/O Targets
 How is task data saved and loaded?
 ------------------------------------------------------------
 
-Task data is saved in a file, database table or memory (cache). You can control how task output data is saved by . In the example below, data is saved as parquet and loaded as a pandas dataframe. The python object you want to save limits how you can save the data.
+Task data is saved in a file, database table or memory (cache). You can control how task output data is saved by chosing the right parent class for a task. In the example below, data is saved as parquet and loaded as a pandas dataframe because the parent class is ``TaskPqPandas``. The python object you want to save determines how you can save the data.
 
 .. code-block:: python
 
