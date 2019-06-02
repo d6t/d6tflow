@@ -79,7 +79,7 @@ class TaskData(luigi.Task):
             output = output['data']
         return output
 
-    def loadInputs(self, keys=None, cached=False):
+    def inputLoad(self, keys=None, cached=False):
         """
         Load all or several outputs from task
 
@@ -101,7 +101,7 @@ class TaskData(luigi.Task):
             data = input.load()
         return data
 
-    def loadOutputs(self, keys=None, as_dict=False, cached=False):
+    def outputLoad(self, keys=None, as_dict=False, cached=False):
         """
         Load all or several outputs from task
 
@@ -113,7 +113,7 @@ class TaskData(luigi.Task):
         Returns: list or dict of all task output
         """
         if not self.complete():
-            return RuntimeError('Cannot load, task not complete, run task first')
+            raise RuntimeError('Cannot load, task not complete, run task first')
         keys = self.persist if keys is None else keys
         if self.persist==['data']: # 1 data shortcut
             return self.output().load()

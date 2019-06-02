@@ -95,7 +95,7 @@ class Task3(d6tflow.tasks.TaskPqPandas):
     def run(self):
         if self.do_preprocess:
             pass
-        df2, df4 = self.loadInputs()
+        df2, df4 = self.inputLoad()
         self.save(self.input()['df2'].load())
 
 def test_tasks(cleanup):
@@ -114,14 +114,14 @@ def test_tasks(cleanup):
 
     # load outputs
     t1.output().load().equals(df)
-    t1.loadOutputs(as_dict=True).equals(df)
-    t1.loadOutputs().equals(df)
+    t1.outputLoad(as_dict=True).equals(df)
+    t1.outputLoad().equals(df)
 
     t2.output()['df2'].load().equals(dfc2)
-    t2.loadOutputs(as_dict=True)['df2'].equals(dfc2)
-    df2, df4 = t2.loadOutputs()
+    t2.outputLoad(as_dict=True)['df2'].equals(dfc2)
+    df2, df4 = t2.outputLoad()
     df2.equals(dfc2)
-    df2, = t2.loadOutputs(keys=['df2'])
+    df2, = t2.outputLoad(keys=['df2'])
     df2.equals(dfc2)
 
     # test inputs
@@ -129,7 +129,7 @@ def test_tasks(cleanup):
         def requires(self):
             return Task1()
         def run(self):
-            dft1 = self.loadInputs()
+            dft1 = self.inputLoad()
             assert dft1.equals(df)
     TaskMultiInput().run()
 
@@ -137,7 +137,7 @@ def test_tasks(cleanup):
         def requires(self):
             return Task1(), Task1()
         def run(self):
-            dft1, dft2 = self.loadInputs()
+            dft1, dft2 = self.inputLoad()
             assert dft1.equals(dft2)
     TaskMultiInput().run()
 
@@ -145,7 +145,7 @@ def test_tasks(cleanup):
         def requires(self):
             return {1:Task1(), 2:Task1()}
         def run(self):
-            dft1, dft2 = self.loadInputs()
+            dft1, dft2 = self.inputLoad()
             assert dft1.equals(dft2)
     TaskMultiInput().run()
 
@@ -305,6 +305,18 @@ def test_preview():
         output = buf.getvalue()
         assert output.count('PENDING')==1
         assert output.count('COMPLETE')==2
+
+def test_dynamic():
+
+    class TaskCollector(d6tflow.tasks.TaskCache):
+        def run(self):
+            yield Task1()
+            yield Task2()
+
+    d6tflow.run(TaskCollector())
+    assert Task1().complete() and Task2().complete()
+    TaskCollector().invalidate(confirm=False)
+    assert not (Task1().complete() and Task2().complete())
 
 #********************************************
 # pipe
