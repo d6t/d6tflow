@@ -185,3 +185,11 @@ You can always run single tasks by calling the `run()` function. This is useful 
     # forcing execution
     TaskTrain().run()
 
+Controlling Log level
+------------------------------------------------------------
+
+You can control how much output is displayed.
+
+.. code-block:: python
+
+    d6tflow.settings.log_level = 'INFO' # 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'

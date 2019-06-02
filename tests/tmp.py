@@ -1,27 +1,5 @@
-import d6tflow
-import pandas as pd
-
-class Task1(d6tflow.tasks.TaskPqPandas):
-    def run(self):
-        df = pd.DataFrame({'a': range(10)})
-        self.save(df)
-
-class TaskMultiInput(d6tflow.tasks.TaskCache):
-    def requires(self):
-        return {1: Task1(), 2: Task1()}
-
-    def run(self):
-        dft1, dft2 = self.loadInputs()
-        assert dft1.equals(dft2)
-
-TaskMultiInput().run()
-quit()
-
 import importlib
 import d6tflow
-d6tflow.tasks.TaskPqPandas
-
-importlib.reload(d6tflow)
 
 import pandas as pd
 df = pd.DataFrame({'a': range(10)})
@@ -37,6 +15,27 @@ class Task2(d6tflow.tasks.TaskCache):
         return Task1()
     def run(self):
         self.save({'df':df})
+
+import luigi
+class TaskCollector(luigi.Task):
+        def run(self):
+            yield Task1()
+            yield Task2()
+
+        def invalidate(self, confirm=True):
+            [t.invalidate(confirm) for t in self.run()]
+
+        def complete(self):
+            return all([t.complete() for t in self.run()])
+
+        def outputLoad(self):
+            return [t.outputLoad() for t in self.run()]
+
+d6tflow.run(TaskCollector())
+assert TaskCollector().complete()
+TaskCollector().invalidate()
+assert not TaskCollector().complete()
+quit()
 
 class Task1a(d6tflow.tasks.TaskCache):
     persist=['df']

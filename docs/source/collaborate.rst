@@ -16,11 +16,14 @@ Sharing Flow output
 .. code-block:: python
 
     import d6tflow.pipes
+
+    # work in local mode first
     d6tflow.pipes.init('your-task-output', local_pipe=True) # save flow output to local pipe directory
 
     d6tflow.run(SomeTask()) # output automatically saved in pipe directory
 
-    do_push = True
+    # when you are ready to push output, connect to remote pipe
+    do_push = True 
     if do_push:
         d6tflow.pipes.init('your-task-output', reset=True) # connect to remote pipe
         pipe = d6tflow.pipes.get_pipe()
@@ -41,6 +44,8 @@ You might also need to set up the remote pipe for access, for example:
     # optionally set permissions, in this case make data public
     settings = {"username":"public","role":"read"}
     d6tpipe.upsert_permissions(api, 'your-task-output', settings)
+
+For additional details on how to use d6tpipe see https://d6tpipe.readthedocs.io/en/latest/quickstart.html
 
 Push/Pull Individual Task Output
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

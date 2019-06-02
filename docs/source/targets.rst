@@ -20,7 +20,7 @@ What kind of object you want to save determines which Task class you need to use
     * ``d6tflow.tasks.TaskPqPandas``: save to parquet, load as pandas 
     * ``d6tflow.tasks.TaskCachePandas``: save to memory, load as pandas 
     * ``d6tflow.tasks.TaskCSVPandas``: save to CSV, load as pandas 
-    * ``d6tflow.tasks.TaskExcelPandas``: save to CSV, load as pandas
+    * ``d6tflow.tasks.TaskExcelPandas``: save to Excel, load as pandas
     * ``d6tflow.tasks.TaskSQLPandas``: save to SQL, load as pandas (premium, see below)
 * dicts
     * ``d6tflow.tasks.TaskJson``: save to JSON, load as python dict

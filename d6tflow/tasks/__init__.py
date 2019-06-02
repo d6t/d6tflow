@@ -223,3 +223,29 @@ class TaskPqPandas(TaskData):
     target_class = d6tflow.targets.PqPandasTarget
     target_ext = 'pq'
 
+class TaskAggregator(luigi.Task):
+    """
+    Task which yields other tasks
+
+    NB: Use this function by implementing `run()` which should do nothing but yield other tasks
+
+    example::
+
+        class TaskCollector(d6tflow.tasks.TaskAggregator):
+            def run(self):
+                yield Task1()
+                yield Task2()
+
+    """
+
+    def invalidate(self, confirm=True):
+        [t.invalidate(confirm) for t in self.run()]
+
+    def complete(self, cascade=True):
+        return all([t.complete(cascade) for t in self.run()])
+
+    def output(self):
+        return [t.output() for t in self.run()]
+
+    def outputLoad(self, keys=None, as_dict=False, cached=False):
+        return [t.outputLoad(keys,as_dict,cached) for t in self.run()]

@@ -20,7 +20,7 @@ If you have a fixed set parameters, you can make `requires()` "dynamic".
             return dict([(s,TaskInput(param=s)) for s in ['a','b','c']])
 
         def run(self):
-            df = [k.load() for k in self.input().values()]
+            df = self.inputLoad()
             df = pd.concat(df)
 
 You could also use this to load an unknown number of files as a starting point for the workflow.

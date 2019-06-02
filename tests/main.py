@@ -308,15 +308,17 @@ def test_preview():
 
 def test_dynamic():
 
-    class TaskCollector(d6tflow.tasks.TaskCache):
+    class TaskCollector(d6tflow.tasks.TaskAggregator):
         def run(self):
             yield Task1()
             yield Task2()
 
     d6tflow.run(TaskCollector())
-    assert Task1().complete() and Task2().complete()
+    assert Task1().complete() and Task2().complete() and TaskCollector().complete()
+    assert TaskCollector().outputLoad()[0].equals(Task1().outputLoad())
+    assert TaskCollector().outputLoad()[1][0].equals(Task2().outputLoad()[0])
     TaskCollector().invalidate(confirm=False)
-    assert not (Task1().complete() and Task2().complete())
+    assert not (Task1().complete() and Task2().complete() and TaskCollector().complete())
 
 #********************************************
 # pipe
@@ -350,9 +352,13 @@ def cleanup_pipe():
 
     yield api1, api2
 
-    pipe1.delete_files_local(confirm=False,delete_all=True)
-    pipe12.delete_files_local(confirm=False,delete_all=True)
-    pipe2.delete_files_local(confirm=False,delete_all=True)
+    @fuckit
+    def delhelper():
+        pipe1.delete_files_local(confirm=False, delete_all=True)
+        pipe12.delete_files_local(confirm=False, delete_all=True)
+        pipe2.delete_files_local(confirm=False, delete_all=True)
+
+    delhelper()
 
 def test_pipes_base(cleanup_pipe):
     import d6tflow.pipes
