@@ -33,17 +33,16 @@ You could also use this to load an unknown number of files as a starting point f
 Collector Task
 ------------------------------------------------------------
 
-If you want to run the workflow with multiple parameters at the same time, you can use `luigi.Task` to yield multiple tasks. The fixed dynamic approach is probably better though.
+If you want to run the workflow with multiple parameters at the same time or run multiple tasks, you can use `TaskAggregator` to yield multiple tasks. This task should do nothing but yield other tasks.
 
 .. code-block:: python
 
-    class TaskCollector(luigi.Task): # note luigi.Task
+    class TaskAggregator(d6tflow.tasks.TaskAggregator):
 
         def run(self):
             yield TaskTrain(do_preprocess=False)
             yield TaskTrain(do_preprocess=True)
 
-See https://luigi.readthedocs.io/en/stable/tasks.html#dynamic-dependencies
 
 Fully Dynamic
 ------------------------------------------------------------
