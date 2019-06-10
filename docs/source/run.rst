@@ -190,7 +190,7 @@ You can always run single tasks by calling the `run()` function. This is useful 
 Reducing Logging Output
 ------------------------------------------------------------
 
-You can control how much output is displayed by changing the log level.
+You can control how much output is displayed by changing the log level. Default is ``INFO``. It is a global setting, modify before you execute ``d6tflow.run()``.
 
 .. code-block:: python
 
