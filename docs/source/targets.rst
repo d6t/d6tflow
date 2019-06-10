@@ -10,6 +10,14 @@ Task data is saved in a file, database table or memory (cache). You can control 
 
     class YourTask(d6tflow.tasks.TaskPqPandas):
 
+Task Output Location
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default file-based task output is saved in ``data/``. You can customize where task output is saved.
+
+.. code-block:: python
+
+    d6tflow.set_dir('../data')
 
 Core task targets
 ------------------------------------------------------------

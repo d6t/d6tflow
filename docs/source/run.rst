@@ -21,6 +21,8 @@ To run all tasks in a workflow, run the downstream task you want to complete. It
     d6tflow.run(TaskTrain()) # single task
     d6tflow.run([TaskPreprocess(),TaskTrain()]) # multiple tasks
 
+If you get ``Error: luigi.worker.TaskException: Can not schedule non-task <class 'TaskTrain'>``, make sure you run an instantiated task object ``d6tflow.run(TaskTrain())`` not just the class ``d6tflow.run(TaskTrain)``.
+
 How is a task marked complete?
 ------------------------------------------------------------
 
