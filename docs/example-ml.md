@@ -90,7 +90,7 @@ print(sklearn.metrics.accuracy_score(df_train['y'],model.predict(df_train.iloc[:
 # 0.96
 
 # Intelligently rerun workflow after changing parameters
-taskModel2 = TaskTrain(do_preprocess=True, model='svm')
+taskModel2 = TaskTrain(do_preprocess=False, model='svm')
 d6tflow.preview(taskModel2)
 
 '''
@@ -102,7 +102,7 @@ d6tflow.preview(taskModel2)
 # compare results from new model
 d6tflow.run(taskModel2)
 model = taskModel2.output().load()
-df_train = TaskPreprocess(do_preprocess=True).output().load()
+df_train = TaskPreprocess(do_preprocess=False).output().load()
 print(sklearn.metrics.accuracy_score(df_train['y'],model.predict(df_train.iloc[:,:-1])))
 # 0.9733333333333334
 
