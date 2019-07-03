@@ -19,7 +19,7 @@ By default file-based task output is saved in ``data/``. You can customize where
 
     d6tflow.set_dir('../data')
 
-Core task targets
+Core task targets (Pandas)
 ------------------------------------------------------------
 
 What kind of object you want to save determines which Task class you need to use.
@@ -37,10 +37,10 @@ What kind of object you want to save determines which Task class you need to use
 * any python object (eg trained models)
     * ``d6tflow.tasks.TaskPickle``: save to pickle, load as python list
     * ``d6tflow.tasks.TaskCache``: save to memory, load as python object
-* dask: premium, see below
+* dask, SQL, pyspark: premium features, see below
 
 
-Additional Targets
+Premium Targets (Dask, SQL, Pyspark)
 ------------------------------------------------------------
 
 Database Targets
@@ -52,6 +52,14 @@ Dask Targets
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 d6tflow premium has dask targets, request access at https://pipe.databolt.tech/gui/request-premium/
+
+Pyspark Targets
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+d6tflow premium has pyspark targets, request access at https://pipe.databolt.tech/gui/request-premium/
+
+Community Targets
+------------------------------------------------------------
 
 Keras Model Targets
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

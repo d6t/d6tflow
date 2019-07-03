@@ -10,6 +10,7 @@ In this example you will:
 * Load task output to pandas dataframe and model object for model evaluation
 * Intelligently rerun workflow after changing a preprocessing parameter
 
+Code is below, interactive example available on **[mybinder](http://tiny.cc/d6tflow-start-interactive)**.
 
 ## Workflow with d6tpipe
 
