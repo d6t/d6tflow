@@ -1,14 +1,13 @@
 import luigi
 from luigi.task import flatten
 import luigi.tools.deps
-import luigi.tools.deps_tree
+from luigi.util import inherits
 
-import d6tflow.targets
-import d6tflow.tasks
+import d6tflow.targets, d6tflow.tasks, d6tflow.settings
+import d6tflow.utils
 from d6tflow.cache import data as data
 import d6tflow.cache
 
-import d6tflow.settings
 from d6tflow.settings import dir, dirpath
 
 print('Welcome to d6tflow!')# We hope you find it useful. If you run into any problems please raise an issue on github at https://github.com/d6t/d6tflow')
@@ -36,11 +35,7 @@ def set_dir(dir=None):
     return dirpath
 
 
-import luigi
-import luigi.tools.deps_tree
-import luigi.tools.deps
-
-def preview(tasks):
+def preview(tasks, indent='', last=True, clip_params=False):
     """
     Preview task flows
 
@@ -50,7 +45,7 @@ def preview(tasks):
     if not isinstance(tasks, (list,)):
         tasks = [tasks]
     for t in tasks:
-        print(luigi.tools.deps_tree.print_tree(t))
+        print(d6tflow.utils.print_tree(t, indent=indent, last=last, clip_params=clip_params))
 
 def run(tasks, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, **kwargs):
     """
@@ -220,4 +215,11 @@ def invalidate_downstream(task, task_downstream, confirm=True):
         return True
     else:
         return False
+
+def clone_parent(cls):
+    def requires(self):
+        return self.clone_parent()
+
+    setattr(cls, 'requires', requires)
+    return cls
 

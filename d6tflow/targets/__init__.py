@@ -288,3 +288,26 @@ class PickleTarget(DataTarget):
         pickle.dump(obj, open(self.path, "wb"), **kwargs)
         return self.path
 
+class MatplotlibTarget(_LocalPathTarget):
+    """
+    Saves to png. Does not load
+    """
+    def load(self):
+        raise RuntimeError('Images can only be saved not loaded')
+
+    def save(self, obj, **kwargs):
+        """
+        Save obj to pickle and png
+
+        Args:
+            obj (obj): python object
+            plotkwargs (dict): additional arguments to plt.savefig()
+            kwargs : additional arguments to pass to pickle.dump
+
+        Returns: filename
+
+        """
+        fig = obj.get_figure()
+        fig.savefig(self.path, **kwargs)
+        return self.path
+

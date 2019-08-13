@@ -192,6 +192,34 @@ def test_formats(cleanup):
         helper(ddf, TaskPqDask, 'pd')
         t1.invalidate(confirm=False)
 
+def test_plot(cleanup):
+    df1 = pd.DataFrame({'a': range(10)})
+    df2 = pd.DataFrame({'b': range(10, 20)})
+
+    plt1 = df1.plot.bar()
+    plt2 = df2.plot.bar()
+
+    class TaskPlot(d6tflow.tasks.TaskMatplotlib):
+        def run(self):
+            self.save(plt1)
+
+    TaskPlot().run()
+    assert TaskPlot().output().exists()
+    TaskPlot().invalidate(confirm=False)
+    assert not TaskPlot().output().exists()
+
+    class TaskPlot2(d6tflow.tasks.TaskMatplotlib):
+        persist = ['plot1','plot2']
+        def run(self):
+            self.save({'plot1':plt1,'plot2':plt2})
+
+    TaskPlot2().run()
+    assert TaskPlot2().complete()
+    TaskPlot2().invalidate(confirm=False)
+    assert not TaskPlot2().complete()
+
+    d6tflow.preview(TaskPlot2(), clip_params=True)
+
 
 def test_params(cleanup):
     class TaskParam(d6tflow.tasks.TaskCache):

@@ -54,6 +54,16 @@ class TaskData(luigi.Task):
             complete = complete and all([t.complete() for t in luigi.task.flatten(self.requires())])
         return complete
 
+    def _getpath(self, dirpath, k, subdir=True):
+        tidroot = self.task_id.split('_')[0]
+        fname = '{}-{}'.format(self.task_id, k) if settings.save_with_param else '{}'.format(k)
+        fname += '.{}'.format(self.target_ext)
+        if subdir:
+            path = dirpath / tidroot / fname
+        else:
+            path = dirpath / fname
+        return path
+
     def output(self):
         """
         Similar to luigi task output
@@ -66,15 +76,8 @@ class TaskData(luigi.Task):
         else:
             dirpath = settings.dirpath
 
-        def getpath(k):
-            tidroot = self.task_id.split('_')[0]
-            fname = '{}-{}'.format(self.task_id, k) if settings.save_with_param else '{}'.format(k)
-            fname += '.{}'.format(self.target_ext)
-            path = dirpath / tidroot / fname
-            return path
-
         save_ = getattr(self, 'persist', [])
-        output = dict([(k, self.target_class(getpath(k))) for k in save_])
+        output = dict([(k, self.target_class(self._getpath(dirpath, k))) for k in save_])
         if self.persist==['data']: # 1 data shortcut
             output = output['data']
         return output
@@ -123,7 +126,7 @@ class TaskData(luigi.Task):
             data = list(data.values())
         return data
 
-    def save(self, data):
+    def save(self, data, **kwargs):
         """
         Persist data to target
 
@@ -132,13 +135,13 @@ class TaskData(luigi.Task):
 
         """
         if self.persist==['data']: # 1 data shortcut
-            self.output().save(data)
+            self.output().save(data, **kwargs)
         else:
             targets = self.output()
             if not set(data.keys())==set(targets.keys()):
                 raise ValueError('Save dictionary needs to consistent with Task.persist')
             for k, v in data.items():
-                targets[k].save(v)
+                targets[k].save(v, **kwargs)
 
     @d6tcollect._collectClass
     def get_pipename(self):
@@ -249,3 +252,12 @@ class TaskAggregator(luigi.Task):
 
     def outputLoad(self, keys=None, as_dict=False, cached=False):
         return [t.outputLoad(keys,as_dict,cached) for t in self.run()]
+
+class TaskMatplotlib(TaskData):
+    """
+    Task which saves plots to png, does not load
+    """
+    target_class = d6tflow.targets.MatplotlibTarget
+    target_ext = 'png'
+    def _getpath(self, dirpath, k, subdir=True):
+        return super()._getpath(dirpath, k, subdir=False)
