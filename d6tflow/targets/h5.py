@@ -11,7 +11,7 @@ class H5PandasTarget(DataTarget):
         opts = {**{'key':'data'},**kwargs}
         return super().save(df, 'to_hdf', **opts)
 
-class H5KerasTarget(d6tflow.targets.DataTarget):
+class H5KerasTarget(DataTarget):
     def load(self, cached=False, **kwargs):
         return super().load(load_model, cached, **kwargs)
 
