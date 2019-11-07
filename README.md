@@ -101,6 +101,16 @@ Real-life project template https://github.com/d6t/d6tflow-template
 
 To quickly share workflow outputs, we recommend you make use of [d6tpipe](https://github.com/d6t/d6tpipe). See [Sharing Workflows and Outputs](https://d6tflow.readthedocs.io/en/latest/collaborate.html).
 
+## Pro version
+
+Additional features:  
+* SQL target storage
+* Dask and pyspark integration
+* Automatically detect data changes
+* Advanced machine learning features
+
+[Request demo](https://pipe.databolt.tech/gui/request-premium/)
+
 ## Accelerate Data Science
 
 Check out other d6t libraries, including  
