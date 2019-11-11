@@ -59,6 +59,7 @@ class _LocalPathTarget(luigi.LocalTarget):
     def __init__(self, path=None):
         super().__init__(path)
         self.path = pathlib.Path(path)
+        (self.path).parent.mkdir(parents=True, exist_ok=True)
 
     def exists(self):
         return self.path.exists()

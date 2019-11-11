@@ -56,7 +56,7 @@ class TaskData(luigi.Task):
 
     def _getpath(self, dirpath, k, subdir=True):
         tidroot = self.task_id.split('_')[0]
-        fname = '{}-{}'.format(self.task_id, k) if settings.save_with_param else '{}'.format(k)
+        fname = '{}'.format(k) if (settings.save_with_param and getattr(self, 'save_attrib', True)) else '{}-{}'.format(self.task_id, k)
         fname += '.{}'.format(self.target_ext)
         if subdir:
             path = dirpath / tidroot / fname
@@ -266,5 +266,3 @@ class TaskMatplotlib(TaskData):
     """
     target_class = d6tflow.targets.MatplotlibTarget
     target_ext = 'png'
-    def _getpath(self, dirpath, k, subdir=True):
-        return super()._getpath(dirpath, k, subdir=False)
