@@ -212,6 +212,13 @@ class TaskCSVPandas(TaskData):
     target_class = d6tflow.targets.CSVPandasTarget
     target_ext = 'csv'
 
+class TaskCSVGZPandas(TaskData):
+    """
+    Task which saves to CSV
+    """
+    target_class = d6tflow.targets.CSVGZPandasTarget
+    target_ext = 'csv.gz'
+
 class TaskExcelPandas(TaskData):
     """
     Task which saves to CSV

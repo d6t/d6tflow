@@ -148,6 +148,25 @@ class CSVPandasTarget(DataTarget):
         opts = {**{'index':False},**kwargs}
         return super().save(df, 'to_csv', **opts)
 
+class CSVGZPandasTarget(DataTarget):
+    """
+    Saves to CSV gzip, loads to pandas dataframe
+
+    """
+    def save(self, df, **kwargs):
+        """
+        Save dataframe to csv gzip
+
+        Args:
+            df (obj): pandas dataframe
+            kwargs : additional arguments to pass to df.to_csv
+
+        Returns: filename
+
+        """
+        opts = {**{'index':False, 'compression':'gzip'},**kwargs}
+        return super().save(df, 'to_csv', **opts)
+
 class ExcelPandasTarget(DataTarget):
     """
     Saves to Excel, loads to pandas dataframe

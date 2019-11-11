@@ -3,6 +3,9 @@ from luigi.task import flatten
 import luigi.tools.deps
 from luigi.util import inherits
 
+import d6tcollect
+d6tcollect.submit = False
+
 import d6tflow.targets, d6tflow.tasks, d6tflow.settings
 import d6tflow.utils
 from d6tflow.cache import data as data
