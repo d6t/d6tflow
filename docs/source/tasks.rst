@@ -46,6 +46,16 @@ You define input dependencies by writing a ``requires()`` function which takes i
 
 **Make sure you add `()` when you define a dependency, so `TaskGetData()` NOT `TaskGetData`.**
 
+Also see :doc:`using parameters <../advparam>` to automatically chain tasks together including parameters.
+
+.. code-block:: python
+
+    @d6tflow.inherits(TaskSingleOutput)
+    @d6tflow.clone_parent
+    class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
+        pass
+
+
 Process Data
 ------------------------------------------------------------
 
@@ -213,6 +223,17 @@ Once a workflow is run and the task is complete, you can easily load its output 
 
     raise RuntimeError('Target does not exist, make sure task is complete')
     RuntimeError: Target does not exist, make sure task is complete
+
+
+Loading Output Data with Parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you are :doc:`using parameters <../advparam>` this is how you load outputs. Make sure you run the task with that parameter first.
+
+.. code-block:: python
+
+    df = TaskSingleOutput(param=value).output().load()
+
 
 Putting it all together
 ------------------------------------------------------------

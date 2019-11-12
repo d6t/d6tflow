@@ -29,6 +29,12 @@ Real-life project template
 
 https://github.com/d6t/d6tflow-template
 
+Transition to d6tflow from typical scripts
+------------------------------------------------------------
+
+[5 Step Guide to Scalable Deep Learning Pipelines with d6tflow](https://htmlpreview.github.io/?https://github.com/d6t/d6t-python/blob/master/blogs/blog-20190813-d6tflow-pytorch.html)
+
+
 User Guide
 ------------------------------------------------------------
 
