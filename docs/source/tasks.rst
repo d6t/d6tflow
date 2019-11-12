@@ -36,13 +36,13 @@ You define input dependencies by writing a ``requires()`` function which takes i
     class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
 
         def requires(self):
-            return TaskGetData()
+            return TaskSingleOutput()
 
     # multiple dependencies
     class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
 
         def requires(self):
-            return {'data1':TaskGetData1(), 'data2':TaskGetData2()}
+            return {'data1':TaskSingleOutput1(), 'data2':TaskSingleOutput2()}
 
 **Make sure you add `()` when you define a dependency, so `TaskGetData()` NOT `TaskGetData`.**
 
@@ -78,7 +78,7 @@ Input data from upstream dependency tasks can be easily loaded in ``run()``
     class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
 
         def requires(self):
-            return TaskGetData()
+            return TaskSingleOutput()
 
         def run(self):
             data = self.input().load()
@@ -87,7 +87,7 @@ Input data from upstream dependency tasks can be easily loaded in ``run()``
     class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
 
         def requires(self):
-            return TaskGetData()
+            return TaskMultipleOutput()
 
         def run(self):
             data = self.input()['output1'].load()
@@ -97,29 +97,25 @@ Input data from upstream dependency tasks can be easily loaded in ``run()``
     class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
 
         def requires(self):
-            return TaskMultipleOutput1(), TaskMultipleOutput1()
-            # or 
-            return {'data1':TaskGetData1(), 'data2':TaskGetData2()}
+            return {'input1':TaskSingleOutput1(), 'input2':TaskSingleOutput2()}
 
         def run(self):
-            data1, data2 = self.loadInputs()
+            data1, data2 = self.inputLoad()
             # or
-            data1 = self.input()['data1'].load()
-            data2 = self.input()['data2'].load()
+            data1 = self.input()['input1'].load()
+            data2 = self.input()['input2'].load()
 
     # multiple dependencies, multiple outputs
     class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
 
         def requires(self):
-            return TaskMultipleOutput1(), TaskMultipleOutput1()
-            # or 
-            return {'data1':TaskMultipleOutput1(), 'data2':TaskMultipleOutput1()}
+            return {'input1':TaskMultipleOutput1(), 'input2':TaskMultipleOutput2()}
 
         def run(self):
-            data1, data2 = self.loadInputs()
-            # or
-            data1 = self.input()['data1']['output1'].load()
-            data2 = self.input()['data2']['output1'].load()
+            data1a = self.input()['input1']['output1'].load()
+            data1b = self.input()['input1']['output2'].load()
+            data2a = self.input()['input2']['output1'].load()
+            data2b = self.input()['input2']['output2'].load()
 
 
 Load External Files
