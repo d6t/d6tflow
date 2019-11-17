@@ -55,8 +55,8 @@ class TaskData(luigi.Task):
         return complete
 
     def _getpath(self, dirpath, k, subdir=True):
-        tidroot = self.task_id.split('_')[0]
-        fname = '{}'.format(k) if (settings.save_with_param and getattr(self, 'save_attrib', True)) else '{}-{}'.format(self.task_id, k)
+        tidroot = getattr(self, 'target_dir', self.task_id.split('_')[0])
+        fname = '{}-{}'.format(self.task_id, k) if (settings.save_with_param and getattr(self, 'save_attrib', True)) else '{}'.format(k)
         fname += '.{}'.format(self.target_ext)
         if subdir:
             path = dirpath / tidroot / fname

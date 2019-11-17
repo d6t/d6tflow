@@ -241,3 +241,13 @@ Putting it all together
 See full example https://github.com/d6t/d6tflow/blob/master/docs/example-ml.md
 
 See real-life project template https://github.com/d6t/d6tflow-template
+
+Advanced: task attribute overrides
+------------------------------------------------------------
+
+`persist`: data items to save, see above  
+`external`: do check dependencies, good for sharing tasks without providing code
+`target_dir`: specify directory  
+`target_ext`: specify extension  
+`save_attrib`: include taskid in filename  
+`pipename`: d6tpipe to save/load to/from  

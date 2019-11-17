@@ -149,7 +149,7 @@ class CSVPandasTarget(DataTarget):
         opts = {**{'index':False},**kwargs}
         return super().save(df, 'to_csv', **opts)
 
-class CSVGZPandasTarget(DataTarget):
+class CSVGZPandasTarget(CSVPandasTarget):
     """
     Saves to CSV gzip, loads to pandas dataframe
 
@@ -291,7 +291,11 @@ class PickleTarget(DataTarget):
         Returns: dict
 
         """
-        return super().load(lambda x: pickle.load(open(x,"rb" )), cached, **kwargs)
+        def funload(x):
+            with open(x,"rb" ) as fhandle:
+                data = pickle.load(fhandle)
+            return data
+        return super().load(funload, cached, **kwargs)
 
     def save(self, obj, **kwargs):
         """
@@ -305,7 +309,8 @@ class PickleTarget(DataTarget):
 
         """
         (self.path).parent.mkdir(parents=True, exist_ok=True)
-        pickle.dump(obj, open(self.path, "wb"), **kwargs)
+        with open(self.path, "wb") as fhandle:
+            pickle.dump(obj, fhandle, **kwargs)
         return self.path
 
 class MatplotlibTarget(_LocalPathTarget):
