@@ -231,7 +231,7 @@ class TaskPqPandas(TaskData):
     Task which saves to parquet
     """
     target_class = d6tflow.targets.PqPandasTarget
-    target_ext = 'pq'
+    target_ext = 'parquet'
 
 class TaskAggregator(luigi.Task):
     """

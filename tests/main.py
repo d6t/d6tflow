@@ -51,18 +51,18 @@ def load_targets(scope="module"):
     d6tflow.settings.cached=True
     dfhelper(d6tflow.targets.CSVPandasTarget,df,'test.csv')
     d6tflow.settings.cached=False
-    dfhelper(d6tflow.targets.PqPandasTarget,df,'test.pq')
+    dfhelper(d6tflow.targets.PqPandasTarget,df,'test.parquet')
 
 def test_targets(cleanup, load_targets):
     pass
 
 def test_cache(cleanup, load_targets):
     assert d6tflow.data[pathdata/'test.csv'].equals(df)
-    assert pathdata/'test.pq' not in d6tflow.data
+    assert pathdata/'test.parquet' not in d6tflow.data
 
     d6tflow.settings.cached=False
-    dfhelper(d6tflow.targets.PqPandasTarget,df,'test2.pq')
-    assert pathdata/'test2.pq' not in d6tflow.data
+    dfhelper(d6tflow.targets.PqPandasTarget,df,'test2.parquet')
+    assert pathdata/'test2.parquet' not in d6tflow.data
     d6tflow.settings.cached=True
 
 #********************************************
@@ -109,8 +109,8 @@ def test_tasks(cleanup):
 
     assert d6tflow.run([Task2()])
     assert t1.complete(); assert t2.complete();
-    assert (pathdata/'Task1'/'Task1__99914b932b-data.pq').exists()
-    assert (pathdata/'Task2'/'Task2__99914b932b-df2.pq').exists()
+    assert (pathdata/'Task1'/'Task1__99914b932b-data.parquet').exists()
+    assert (pathdata/'Task2'/'Task2__99914b932b-df2.parquet').exists()
 
     # load outputs
     t1.output().load().equals(df)
@@ -155,6 +155,19 @@ def test_tasks(cleanup):
     d6tflow.settings.check_dependencies=False
     assert t2.complete()
     d6tflow.settings.check_dependencies=True
+
+def test_task_overrides(cleanup):
+    t1=Task1()
+    t1.target_dir = 'test'
+    t1.target_ext = 'pq'
+
+    assert not t1.complete()
+    t1.run()
+    assert (pathdata/t1.target_dir/f'Task1__99914b932b-data.{t1.target_ext}').exists()
+
+    t1.save_attrib = False
+    t1.run()
+    assert (pathdata/t1.target_dir/f'data.{t1.target_ext}').exists()
 
 def test_formats(cleanup):
     def helper(data,TaskClass,format=None):

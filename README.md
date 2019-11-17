@@ -39,7 +39,7 @@ You can also clone the repo and run `pip install .`
 
 **Python3 only** You might need to call `pip3 install d6tflow` if you have not set python 3 as default.
 
-To install latest DEV `pip install git+git://https://github.com/d6t/d6tflow.git`
+To install latest DEV `pip install git+git://github.com/d6t/d6tflow.git` or upgrade `pip install git+git://github.com/d6t/d6tflow.git -U --no-deps`
 
 ## Example Output
 
