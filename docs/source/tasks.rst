@@ -122,6 +122,9 @@ Input data from upstream dependency tasks can be easily loaded in ``run()``
             return {'input1':TaskMultipleOutput1(), 'input2':TaskMultipleOutput2()}
 
         def run(self):
+            data1a, data1b = self.inputLoad(task='input1')
+            data2a, data2b = self.inputLoad(task='input2')
+            # or
             data1a = self.input()['input1']['output1'].load()
             data1b = self.input()['input1']['output2'].load()
             data2a = self.input()['input2']['output1'].load()

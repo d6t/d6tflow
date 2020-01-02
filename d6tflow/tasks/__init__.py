@@ -82,23 +82,26 @@ class TaskData(luigi.Task):
             output = output['data']
         return output
 
-    def inputLoad(self, keys=None, cached=False):
+    def inputLoad(self, keys=None, task=None, cached=False):
         """
         Load all or several outputs from task
 
         Args:
             keys (list): list of data to load
-            as_dict (bool): cache data in memory
+            task (str): if requires multiple tasks load that task 'input1' for eg `def requires: {'input1':Task1(), 'input2':Task2()}`
             cached (bool): cache data in memory
 
         Returns: list or dict of all task output
         """
-        input = self.input()
+        if isinstance(self.requires(), dict) and task is not None:
+            input = self.input()[task]
+        else:
+            input = self.input()
         if isinstance(input, tuple):
             data = [o.load() for o in input]
         elif isinstance(input, dict):
             keys = input.keys() if keys is None else keys
-            data = {k: v.load(cached) for k, v in self.input().items() if k in keys}
+            data = {k: v.load(cached) for k, v in input.items() if k in keys}
             data = list(data.values())
         else:
             data = input.load()
@@ -116,7 +119,7 @@ class TaskData(luigi.Task):
         Returns: list or dict of all task output
         """
         if not self.complete():
-            raise RuntimeError('Cannot load, task not complete, run task first')
+            raise RuntimeError('Cannot load, task not complete, run flow first')
         keys = self.persist if keys is None else keys
         if self.persist==['data']: # 1 data shortcut
             return self.output().load()

@@ -73,8 +73,7 @@ You often need to pass parameters between classes. You can avoid having to repea
         dt_end = luigi.DateParameter(default=datetime.date(2020,1,1))
         # ...
 
-    @d6tflow.inherits(TaskTrain) # inherit all params from TaskTrain
-    @d6tflow.clone_parent
+    @d6tflow.requires(TaskTrain)
     class TaskEvaluate(d6tflow.tasks.TaskPickle):
 
         # requires() is automatic
@@ -83,6 +82,37 @@ You often need to pass parameters between classes. You can avoid having to repea
             print(self.do_preprocess) # inherited
             print(self.dt_start) # inherited
 
+If you require multiple tasks, you can inherit parameters from those tasks.
+
+.. code-block:: python
+
+    class TaskTrain(d6tflow.tasks.TaskPqPandas):
+        do_preprocess = luigi.BoolParameter(default=True)
+
+    class TaskPredict(d6tflow.tasks.TaskPqPandas):
+        dt_start = luigi.DateParameter(default=datetime.date(2010,1,1))
+        dt_end = luigi.DateParameter(default=datetime.date(2020,1,1))
+
+    @d6tflow.inherits(TaskTrain,TaskPredict) # inherit all params from input tasks
+    class TaskEvaluate(d6tflow.tasks.TaskPickle):
+
+        def requires(self):
+            return {'input1':TaskTrain(), 'input2':TaskPredict()}
+
+        def run(self):
+            print(self.do_preprocess) # inherited from TaskTrain
+            print(self.dt_start) # inherited from TaskPredict
+
+`@d6tflow.inherits` also works with aggregator tasks.
+
+.. code-block:: python
+
+    @d6tflow.inherits(TaskTrain,TaskPredict) # inherit all params from input tasks
+    class TaskEvaluate(d6tflow.tasks.TaskAggregator):
+
+        def run(self):
+            yield self.clone(TaskTrain)
+            yield self.clone(TaskPredict)
 
 For more details see https://luigi.readthedocs.io/en/stable/api/luigi.util.html
 

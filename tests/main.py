@@ -149,6 +149,14 @@ def test_tasks(cleanup):
             assert dft1.equals(dft2)
     TaskMultiInput().run()
 
+    class TaskMultiInput2(d6tflow.tasks.TaskCache):
+        def requires(self):
+            return {'in1':Task2(), 'in1':Task2()}
+        def run(self):
+            df2, df4 = self.inputLoad(task='in1')
+            assert df2.equals(dfc2) and df4.equals(dfc4)
+    TaskMultiInput2().run()
+
     # check downstream incomplete
     t1.invalidate(confirm=False)
     assert not t2.complete()

@@ -1,7 +1,7 @@
 import luigi
 from luigi.task import flatten
 import luigi.tools.deps
-from luigi.util import inherits
+from luigi.util import inherits, requires
 
 import d6tcollect
 d6tcollect.submit = False
