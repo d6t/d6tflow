@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='d6tflow',
-    version='0.1.9',
+    version='0.2.0',
     packages=['d6tflow','d6tflow.targets','d6tflow.tasks'],
     url='https://github.com/d6t/d6tflow',
     license='MIT',
@@ -14,8 +14,9 @@ setup(
     install_requires=['luigi', 'pandas', 'pyarrow','d6tcollect'
     ],
     extras_require={
-        'dask': ['toolz','dask[dataframe]']},
-    include_package_data=True,
+        'dask': ['toolz','dask[dataframe]'],
+        'pipe': ['d6tpipe', 'jinja2']},
+include_package_data=True,
     python_requires='>=3.5',
     keywords=['d6tflow', 'data workflow', 'data pipelines', 'luigi'],
     classifiers=[]

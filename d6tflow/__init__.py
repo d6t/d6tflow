@@ -1,3 +1,4 @@
+import warnings
 import luigi
 from luigi.task import flatten
 import luigi.tools.deps
@@ -109,15 +110,7 @@ def taskflow_upstream(task, only_complete=False):
 
     """
 
-    def traverse(t, path=None):
-        if path is None: path = []
-        path = path + [t]
-        for node in flatten(t.requires()):
-            if not node in path:
-                path = traverse(node, path)
-        return path
-
-    tasks = traverse(task)
+    tasks = d6tflow.utils.traverse(task)
     if only_complete:
         tasks = [t for t in tasks if t.complete()]
     return tasks
@@ -220,6 +213,7 @@ def invalidate_downstream(task, task_downstream, confirm=True):
         return False
 
 def clone_parent(cls):
+    warnings.warn("This is replaced with `@d6tflow.requires()`", DeprecationWarning, stacklevel=2)
     def requires(self):
         return self.clone_parent()
 

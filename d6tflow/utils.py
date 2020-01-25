@@ -31,3 +31,15 @@ def print_tree(task, indent='', last=True, clip_params=False):
     for index, child in enumerate(children):
         result += print_tree(child, indent, (index+1) == len(children), clip_params)
     return result
+
+
+def traverse(t, path=None):
+    '''
+    Get upstream dependencies
+    '''
+    if path is None: path = []
+    path = path + [t]
+    for node in flatten(t.requires()):
+        if not node in path:
+            path = traverse(node, path)
+    return path

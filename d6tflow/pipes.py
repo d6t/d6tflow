@@ -144,3 +144,89 @@ def all_push_preview(task, **kwargs):
     Push preview for all upstream tasks in a flow
     """
     return _all_runfun(task, 'push_preview', push=True, **kwargs)
+
+
+#**********************************************
+# export tasks
+#**********************************************
+import pathlib
+
+from jinja2 import Template
+
+class FlowExport(object):
+
+    def __init__(self, tasks, pipename, write_dir='.', write_filename_tasks='tasks_d6tpipe.py', write_filename_run='run_d6tpipe.py', run=False, run_params=None):
+        # todo NN: copy = False # copy task output to pipe
+        if not isinstance(tasks, (list,)):
+            tasks = [tasks]
+        if run:
+            run_params = {} if run_params is None else run_params
+            d6tflow.run(tasks,**run_params)
+
+        self.tasks = tasks
+        self.pipename = pipename
+        self.write_dir = pathlib.Path(write_dir)
+        self.write_filename_tasks = write_filename_tasks
+        self.write_filename_run = write_filename_run
+
+        # file templates
+        self.tmpl_tasks = '''
+import d6tflow
+import luigi
+
+{% for task in tasks -%}
+
+class {{task.name}}({{task.class}}):
+    external=True
+    persist={{task.obj.persist}}
+    {% for param in task.params -%}
+    {{param.name}}={{param.class}}(default={{param.default}})
+    {% endfor %}
+{% endfor %}
+'''
+
+        self.tmpl_run = '''
+import {{self_.write_filename_tasks[:-3]}}
+import d6tflow.pipes
+
+d6tflow.pipes.init('{{self_.pipename}}') # yes but user can override if they want to save to their own pipe
+d6tflow.pipes.get_pipe('{{self_.pipename}}').pull()
+
+# to load data see https://d6tflow.readthedocs.io/en/latest/tasks.html#load-output-data
+# available tasks are shown in {{self_.write_filename_tasks}}
+
+'''
+
+
+    def generate(self):
+        # get task values
+        tasksPrint = []
+        for task_ in self.tasks:
+            for task in d6tflow.utils.traverse(task_):
+                if getattr(task,'export',True):
+                    class_ = next(c for c in type(task).__mro__ if 'd6tflow.tasks.' in str(c)) # type(task).__mro__[1]
+                    taskPrint = {'name': task.__class__.__name__, 'class': class_.__module__ + "." + class_.__name__,
+                                 'obj': task, 'params': [{'name': param[0],
+                                                          'class': param[1].__class__.__module__ + "." + param[
+                                                              1].__class__.__name__,
+                                                          'default': repr(param[1]._default)} for param in
+                                                         task.get_params()]}
+                    tasksPrint.append(taskPrint)
+
+        tasksPrint[-1], tasksPrint[0:-1] = tasksPrint[0], tasksPrint[1:]
+
+        # write files
+        with open(self.write_dir/self.write_filename_tasks, 'w') as fh:
+            fh.write(Template(self.tmpl_tasks).render(tasks=tasksPrint))
+
+        with open(self.write_dir/self.write_filename_run, 'w') as fh:
+            fh.write(Template(self.tmpl_run).render(self_=self))
+
+    def push(self): # pipename.push()
+        raise NotImplementedError()
+
+    def test(self): # test if target user can run all
+        raise NotImplementedError()
+
+    def complete(self): # check if all tasks complete
+        raise NotImplementedError()
