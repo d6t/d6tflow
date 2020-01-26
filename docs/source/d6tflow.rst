@@ -4,6 +4,14 @@ d6tflow package
 Submodules
 ----------
 
+Module contents
+---------------
+
+.. automodule:: d6tflow
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 d6tflow.tasks module
 ----------------------------
 
@@ -20,10 +28,11 @@ d6tflow.targets module
     :undoc-members:
     :show-inheritance:
 
-Module contents
----------------
+d6tflow.pipes module
+----------------------------
 
-.. automodule:: d6tflow
+.. automodule:: d6tflow.pipes
     :members:
     :undoc-members:
     :show-inheritance:
+

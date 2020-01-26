@@ -32,6 +32,8 @@ Sharing Flow output
 
 Make sure you have configured d6tpipe correctly before you push. See https://d6tpipe.readthedocs.io/en/latest/quickstart.html#first-time-setup
 
+To customize `init()` see :doc:`d6tflow.pipes module in Reference<../d6tflow>`
+
 You might also need to set up the remote pipe for access, for example:
 
 .. code-block:: python

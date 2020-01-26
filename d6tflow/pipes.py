@@ -7,7 +7,7 @@ except:
     ModuleNotFoundError("Optional requirement d6tpipe not found, install with `pip install d6tpipe`")
 
 
-@d6tcollect.collect
+#@d6tcollect.collect
 def init(default_pipe_name, profile=None, local_pipe=False, local_api=False, reset=False, api=None, set_dir=True, api_args=None, pipe_args=None):
     """
     Initialize d6tpipe
@@ -51,7 +51,7 @@ def _assertinit():
         raise RuntimeError('d6tpipe not initialized, run d6tflow.pipes.init()')
 
 
-@d6tcollect.collect
+#@d6tcollect.collect
 def init_pipe(name=None, **kwargs):
     _assertinit()
     name = d6tflow.cache.pipe_default_name if name is None else name
@@ -155,6 +155,18 @@ from jinja2 import Template
 
 class FlowExport(object):
 
+    """
+    Auto generate run and task files to quickly share workflows with others using d6tpipe.
+
+    Args:
+        tasks (obj): task or list of tasks to share
+        pipename (str): name of d6tpipe pipe
+        write_dir (str): directory to export files into
+        write_filename_tasks (str): filename for tasks
+        write_filename_run (str): filename for run
+        run (bool): auto-run tasks
+        run_params (dict): parameters to pass to d6tflow.run(tasks)
+    """
     def __init__(self, tasks, pipename, write_dir='.', write_filename_tasks='tasks_d6tpipe.py', write_filename_run='run_d6tpipe.py', run=False, run_params=None):
         # todo NN: copy = False # copy task output to pipe
         if not isinstance(tasks, (list,)):
@@ -189,7 +201,7 @@ class {{task.name}}({{task.class}}):
 import {{self_.write_filename_tasks[:-3]}}
 import d6tflow.pipes
 
-d6tflow.pipes.init('{{self_.pipename}}') # yes but user can override if they want to save to their own pipe
+d6tflow.pipes.init('{{self_.pipename}}',profile='default') # to customize see https://d6tflow.readthedocs.io/en/latest/collaborate.html
 d6tflow.pipes.get_pipe('{{self_.pipename}}').pull()
 
 # to load data see https://d6tflow.readthedocs.io/en/latest/tasks.html#load-output-data
@@ -199,7 +211,9 @@ d6tflow.pipes.get_pipe('{{self_.pipename}}').pull()
 
 
     def generate(self):
-        # get task values
+        """
+        Generate output files
+        """
         tasksPrint = []
         for task_ in self.tasks:
             for task in d6tflow.utils.traverse(task_):
@@ -209,8 +223,8 @@ d6tflow.pipes.get_pipe('{{self_.pipename}}').pull()
                                  'obj': task, 'params': [{'name': param[0],
                                                           'class': param[1].__class__.__module__ + "." + param[
                                                               1].__class__.__name__,
-                                                          'default': repr(param[1]._default)} for param in
-                                                         task.get_params()]}
+                                                          'default': repr(getattr(task,param[0]))} for param in
+                                                         task.get_params()]} # param[1]._default
                     tasksPrint.append(taskPrint)
 
         tasksPrint[-1], tasksPrint[0:-1] = tasksPrint[0], tasksPrint[1:]
