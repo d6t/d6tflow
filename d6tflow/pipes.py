@@ -198,15 +198,18 @@ class {{task.name}}({{task.class}}):
 '''
 
         self.tmpl_run = '''
+# shared d6tflow workflow, see https://d6tflow.readthedocs.io/en/latest/collaborate.html
 import {{self_.write_filename_tasks[:-3]}}
 import d6tflow.pipes
 
-d6tflow.pipes.init('{{self_.pipename}}',profile='default') # to customize see https://d6tflow.readthedocs.io/en/latest/collaborate.html
+d6tflow.pipes.init('{{self_.pipename}}',profile='default') # to customize see https://d6tflow.readthedocs.io/en/latest/d6tflow.html#d6tflow.pipes.init
 d6tflow.pipes.get_pipe('{{self_.pipename}}').pull()
 
-# to load data see https://d6tflow.readthedocs.io/en/latest/tasks.html#load-output-data
-# available tasks are shown in {{self_.write_filename_tasks}}
+# task output is loaded below, for more details see https://d6tflow.readthedocs.io/en/latest/tasks.html#load-output-data
+{% for task in tasks -%}
 
+df_{{task.name|lower}} = {{self_.write_filename_tasks[:-3]}}.{{task.name}}().outputLoad()
+{% endfor %}
 '''
 
 
@@ -234,7 +237,7 @@ d6tflow.pipes.get_pipe('{{self_.pipename}}').pull()
             fh.write(Template(self.tmpl_tasks).render(tasks=tasksPrint))
 
         with open(self.write_dir/self.write_filename_run, 'w') as fh:
-            fh.write(Template(self.tmpl_run).render(self_=self))
+            fh.write(Template(self.tmpl_run).render(self_=self,tasks=tasksPrint))
 
     def push(self): # pipename.push()
         raise NotImplementedError()
