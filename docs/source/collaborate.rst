@@ -22,6 +22,9 @@ Sharing Flow output
 
     d6tflow.run(SomeTask()) # output automatically saved in pipe directory
 
+    # auto generate 'tasks_d6tpipe.py' and 'run_d6tpipe.py' for data consumer
+    d6tflow.pipes.FlowExport(task,cfg_pipe).generate()
+
     # when you are ready to push output, connect to remote pipe
     do_push = True 
     if do_push:

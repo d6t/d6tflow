@@ -102,14 +102,14 @@ class Task1All(d6tflow.tasks.TaskCache):
         code = readfile(e.write_dir/e.write_filename_run)
         assert code == '''
 # shared d6tflow workflow, see https://d6tflow.readthedocs.io/en/latest/collaborate.html
-import tasks_d6tpipe
 import d6tflow.pipes
+import tasks_d6tpipe
 
 d6tflow.pipes.init('utest-flowexport',profile='default') # to customize see https://d6tflow.readthedocs.io/en/latest/d6tflow.html#d6tflow.pipes.init
 d6tflow.pipes.get_pipe('utest-flowexport').pull()
 
 # task output is loaded below, for more details see https://d6tflow.readthedocs.io/en/latest/tasks.html#load-output-data
-df_task1a = tasks_d6tpipe.Task1A().outputLoad()
-df_task1b = tasks_d6tpipe.Task1B().outputLoad()
-df_task1all = tasks_d6tpipe.Task1All().outputLoad()
+df_task1a = tasks_d6tpipe.Task1A(idx=1, idx2='test', ).outputLoad()
+df_task1b = tasks_d6tpipe.Task1B(idx3='test3', ).outputLoad()
+df_task1all = tasks_d6tpipe.Task1All(idx=1, idx2='test', idx3='test3', ).outputLoad()
 '''

@@ -164,10 +164,11 @@ class FlowExport(object):
         write_dir (str): directory to export files into
         write_filename_tasks (str): filename for tasks
         write_filename_run (str): filename for run
+        run_load_values (bool): include param values in run file, eg `Task1(param=1)` vs just `Task1(param=1)` if false
         run (bool): auto-run tasks
         run_params (dict): parameters to pass to d6tflow.run(tasks)
     """
-    def __init__(self, tasks, pipename, write_dir='.', write_filename_tasks='tasks_d6tpipe.py', write_filename_run='run_d6tpipe.py', run=False, run_params=None):
+    def __init__(self, tasks, pipename, write_dir='.', write_filename_tasks='tasks_d6tpipe.py', write_filename_run='run_d6tpipe.py', run_load_values=True, run=False, run_params=None):
         # todo NN: copy = False # copy task output to pipe
         if not isinstance(tasks, (list,)):
             tasks = [tasks]
@@ -180,6 +181,7 @@ class FlowExport(object):
         self.write_dir = pathlib.Path(write_dir)
         self.write_filename_tasks = write_filename_tasks
         self.write_filename_run = write_filename_run
+        self.run_load_values = run_load_values
 
         # file templates
         self.tmpl_tasks = '''
@@ -192,23 +194,26 @@ class {{task.name}}({{task.class}}):
     external=True
     persist={{task.obj.persist}}
     {% for param in task.params -%}
-    {{param.name}}={{param.class}}(default={{param.default}})
+    {{param.name}}={{param.class}}(default={{param.value}})
     {% endfor %}
 {% endfor %}
 '''
 
         self.tmpl_run = '''
 # shared d6tflow workflow, see https://d6tflow.readthedocs.io/en/latest/collaborate.html
-import {{self_.write_filename_tasks[:-3]}}
 import d6tflow.pipes
+import {{self_.write_filename_tasks[:-3]}}
 
 d6tflow.pipes.init('{{self_.pipename}}',profile='default') # to customize see https://d6tflow.readthedocs.io/en/latest/d6tflow.html#d6tflow.pipes.init
 d6tflow.pipes.get_pipe('{{self_.pipename}}').pull()
 
 # task output is loaded below, for more details see https://d6tflow.readthedocs.io/en/latest/tasks.html#load-output-data
 {% for task in tasks -%}
-
+{% if self_.run_load_values -%}
+df_{{task.name|lower}} = {{self_.write_filename_tasks[:-3]}}.{{task.name}}({% for param in task.params %}{{param.name}}={{param.value}}, {% endfor %}).outputLoad()
+{% else -%}
 df_{{task.name|lower}} = {{self_.write_filename_tasks[:-3]}}.{{task.name}}().outputLoad()
+{% endif -%}
 {% endfor %}
 '''
 
@@ -224,10 +229,8 @@ df_{{task.name|lower}} = {{self_.write_filename_tasks[:-3]}}.{{task.name}}().out
                     class_ = next(c for c in type(task).__mro__ if 'd6tflow.tasks.' in str(c)) # type(task).__mro__[1]
                     taskPrint = {'name': task.__class__.__name__, 'class': class_.__module__ + "." + class_.__name__,
                                  'obj': task, 'params': [{'name': param[0],
-                                                          'class': param[1].__class__.__module__ + "." + param[
-                                                              1].__class__.__name__,
-                                                          'default': repr(getattr(task,param[0]))} for param in
-                                                         task.get_params()]} # param[1]._default
+                                                          'class': f'{param[1].__class__.__module__}.{param[1].__class__.__name__}',
+                                                          'value': repr(getattr(task,param[0]))} for param in task.get_params()]} # param[1]._default
                     tasksPrint.append(taskPrint)
 
         tasksPrint[-1], tasksPrint[0:-1] = tasksPrint[0], tasksPrint[1:]
