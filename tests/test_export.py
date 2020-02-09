@@ -69,15 +69,49 @@ def cleanup():
 
 class TestExport:
 
-    def test_export(self,cleanup):
+    def test_task(self,cleanup):
 
-        e = d6tflow.pipes.FlowExport(Task1All(),'utest-flowexport',write_dir=cfg_write_dir)
+        e = d6tflow.pipes.FlowExport('utest-flowexport',tasks=Task1All(),write_dir=cfg_write_dir)
         e.generate()
 
         code = readfile(e.write_dir/e.write_filename_tasks)
         assert code == '''
 import d6tflow
 import luigi
+import datetime
+
+class Task1All(d6tflow.tasks.TaskCache):
+    external=True
+    persist=['data']
+    idx=luigi.parameter.IntParameter(default=1)
+    idx2=luigi.parameter.Parameter(default='test')
+    idx3=luigi.parameter.Parameter(default='test3')
+
+'''
+
+        code = readfile(e.write_dir/e.write_filename_run)
+        assert code == '''
+# shared d6tflow workflow, see https://d6tflow.readthedocs.io/en/latest/collaborate.html
+import d6tflow.pipes
+import tasks_d6tpipe
+
+d6tflow.pipes.init('utest-flowexport',profile='default') # to customize see https://d6tflow.readthedocs.io/en/latest/d6tflow.html#d6tflow.pipes.init
+d6tflow.pipes.get_pipe('utest-flowexport').pull()
+
+# task output is loaded below, for more details see https://d6tflow.readthedocs.io/en/latest/tasks.html#load-output-data
+df_task1all = tasks_d6tpipe.Task1All(idx=1, idx2='test', idx3='test3', ).outputLoad()
+'''
+
+    def test_flow(self,cleanup):
+
+        e = d6tflow.pipes.FlowExport('utest-flowexport',flows=Task1All(),write_dir=cfg_write_dir)
+        e.generate()
+
+        code = readfile(e.write_dir/e.write_filename_tasks)
+        assert code == '''
+import d6tflow
+import luigi
+import datetime
 
 class Task1A(d6tflow.tasks.TaskCache):
     external=True

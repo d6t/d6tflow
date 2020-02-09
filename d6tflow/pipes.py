@@ -160,6 +160,7 @@ class FlowExport(object):
 
     Args:
         tasks (obj): task or list of tasks to share
+        flows (obj): task or list of tasks to share, including upstream tasks
         pipename (str): name of d6tpipe pipe
         write_dir (str): directory to export files into
         write_filename_tasks (str): filename for tasks
@@ -168,10 +169,18 @@ class FlowExport(object):
         run (bool): auto-run tasks
         run_params (dict): parameters to pass to d6tflow.run(tasks)
     """
-    def __init__(self, tasks, pipename, write_dir='.', write_filename_tasks='tasks_d6tpipe.py', write_filename_run='run_d6tpipe.py', run_load_values=True, run=False, run_params=None):
+    def __init__(self, pipename, tasks=None, flows=None, write_dir='.', write_filename_tasks='tasks_d6tpipe.py', write_filename_run='run_d6tpipe.py', run_load_values=True, run=False, run_params=None):
         # todo NN: copy = False # copy task output to pipe
+        tasks = [] if tasks is None else tasks
+        flows = [] if flows is None else flows
         if not isinstance(tasks, (list,)):
             tasks = [tasks]
+        if not isinstance(flows, (list,)):
+            flows = [flows]
+        for flow in flows:
+            for task in d6tflow.utils.traverse(flow):
+                tasks.append(task)
+
         if run:
             run_params = {} if run_params is None else run_params
             d6tflow.run(tasks,**run_params)
@@ -187,6 +196,7 @@ class FlowExport(object):
         self.tmpl_tasks = '''
 import d6tflow
 import luigi
+import datetime
 
 {% for task in tasks -%}
 
@@ -223,8 +233,7 @@ df_{{task.name|lower}} = {{self_.write_filename_tasks[:-3]}}.{{task.name}}().out
         Generate output files
         """
         tasksPrint = []
-        for task_ in self.tasks:
-            for task in d6tflow.utils.traverse(task_):
+        for task in self.tasks:
                 if getattr(task,'export',True):
                     class_ = next(c for c in type(task).__mro__ if 'd6tflow.tasks.' in str(c)) # type(task).__mro__[1]
                     taskPrint = {'name': task.__class__.__name__, 'class': class_.__module__ + "." + class_.__name__,
