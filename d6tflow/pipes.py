@@ -213,6 +213,7 @@ class {{task.name}}({{task.class}}):
 # shared d6tflow workflow, see https://d6tflow.readthedocs.io/en/latest/collaborate.html
 import d6tflow.pipes
 import {{self_.write_filename_tasks[:-3]}}
+import datetime
 
 d6tflow.pipes.init('{{self_.pipename}}',profile='default') # to customize see https://d6tflow.readthedocs.io/en/latest/d6tflow.html#d6tflow.pipes.init
 d6tflow.pipes.get_pipe('{{self_.pipename}}').pull()
@@ -220,7 +221,11 @@ d6tflow.pipes.get_pipe('{{self_.pipename}}').pull()
 # task output is loaded below, for more details see https://d6tflow.readthedocs.io/en/latest/tasks.html#load-output-data
 {% for task in tasks -%}
 {% if self_.run_load_values -%}
+{% if task.persist|length > 1 -%}
+{% for df in task.persist -%}df_{{task.name|lower}}_{{df}}, {% endfor -%} = {{self_.write_filename_tasks[:-3]}}.{{task.name}}({% for param in task.params %}{{param.name}}={{param.value}}, {% endfor %}).outputLoad()
+{% else -%}
 df_{{task.name|lower}} = {{self_.write_filename_tasks[:-3]}}.{{task.name}}({% for param in task.params %}{{param.name}}={{param.value}}, {% endfor %}).outputLoad()
+{% endif -%}
 {% else -%}
 df_{{task.name|lower}} = {{self_.write_filename_tasks[:-3]}}.{{task.name}}().outputLoad()
 {% endif -%}
@@ -237,7 +242,7 @@ df_{{task.name|lower}} = {{self_.write_filename_tasks[:-3]}}.{{task.name}}().out
                 if getattr(task,'export',True):
                     class_ = next(c for c in type(task).__mro__ if 'd6tflow.tasks.' in str(c)) # type(task).__mro__[1]
                     taskPrint = {'name': task.__class__.__name__, 'class': class_.__module__ + "." + class_.__name__,
-                                 'obj': task, 'params': [{'name': param[0],
+                                 'obj': task, 'persist': task.persist, 'params': [{'name': param[0],
                                                           'class': f'{param[1].__class__.__module__}.{param[1].__class__.__name__}',
                                                           'value': repr(getattr(task,param[0]))} for param in task.get_params()]} # param[1]._default
                     tasksPrint.append(taskPrint)
