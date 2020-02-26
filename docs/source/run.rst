@@ -26,7 +26,7 @@ If you get ``Error: luigi.worker.TaskException: Can not schedule non-task <class
 How is a task marked complete?
 ------------------------------------------------------------
 
-Taks are complete when task output exists. This is typically the existance of a file, database table or cache. See :doc:`Task I/O Formats <../targets>` how task output is stored to understand what needs to exist for a task to be complete. 
+Tasks are complete when task output exists. This is typically the existance of a file, database table or cache. See :doc:`Task I/O Formats <../targets>` how task output is stored to understand what needs to exist for a task to be complete. 
 
 .. code-block:: python
 
