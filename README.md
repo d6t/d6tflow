@@ -81,12 +81,12 @@ d6tflow.run(Task3())
     - 1 Task3(multiplier=2)
 '''
 
-Task3().outputLoad() # quickly load output data
+Task3().outputLoad() # quickly load output data. Task1().outputLoad() also works
 '''
-   a  b
-0  0  0
-1  1  2
-2  2  4
+   a1  a2  b
+0   0   0  0
+1   1   1  2
+2   2   2  4
 '''
 
 # Intelligently rerun workflow after changing parameters
