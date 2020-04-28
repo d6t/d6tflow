@@ -41,55 +41,65 @@ You can also clone the repo and run `pip install .`
 
 To install latest DEV `pip install git+git://github.com/d6t/d6tflow.git` or upgrade `pip install git+git://github.com/d6t/d6tflow.git -U --no-deps`
 
-## Example Output
+## Example: Introduction
+
+This is a minial example. Be sure to check out the ML workflow example below.
+
+```python
+
+import d6tflow, luigi
+import pandas as pd
+
+# define workflow
+class Task1(d6tflow.tasks.TaskPqPandas):
+    
+    def run(self):
+        df = pd.DataFrame({'a':range(3)})
+        self.save(df) # quickly save dataframe
+
+@d6tflow.requires(Task1) # define dependency
+class Task2(d6tflow.tasks.TaskPqPandas):
+    multiplier = luigi.IntParameter(default=2)
+    
+    def run(self):
+        df = self.inputLoad() # quickly load input data
+        df['b']=df['a']*self.multiplier
+        self.save(df)
+
+# Execute task including dependencies
+d6tflow.run(Task2())
+'''
+* 2 ran successfully:
+    - 1 Task1()
+    - 1 Task2(multiplier=2)
+'''
+
+Task2().outputLoad() # quickly load output data
+'''
+   a  b
+0  0  0
+1  1  2
+2  2  4
+'''
+
+# Intelligently rerun workflow after changing parameters
+d6tflow.preview(Task2(multiplier=3))
+'''
+└─--[Task2-{'multiplier': '3'} (PENDING)] => this changed and needs to run
+   └─--[Task1-{} (COMPLETE)] => this doesn't change and doesn't need to rerun
+'''
+
+
+```
+
+
+## Example: ML Workflow
 
 Below is sample output for a machine learning workflow. `TaskTrain()` depends on `TaskPreprocess()` which in turn depends on `TaskGetData()`. In the end you want to train and evaluate a model but that requires running multiple dependencies. 
 
 **[See the full example here](http://tiny.cc/d6tflow-start-example)**  
 **[Interactive mybinder example](http://tiny.cc/d6tflow-start-interactive)**
 
-```python
-
-# Check task dependencies and their execution status
-d6tflow.preview(TaskTrain())
-
-'''
-└─--[TaskTrain-{'do_preprocess': 'True'} (PENDING)]
-   └─--[TaskPreprocess-{'do_preprocess': 'True'} (PENDING)]
-      └─--[TaskGetData-{} (PENDING)]
-'''
-
-# Execute the model training task including dependencies
-d6tflow.run(TaskTrain())
-
-'''
-===== Execution Summary =====
-
-Scheduled 3 tasks of which:
-* 3 ran successfully:
-    - 1 TaskGetData()
-    - 1 TaskPreprocess(do_preprocess=True)
-    - 1 TaskTrain(do_preprocess=True)
-'''
-
-# Load task output to pandas dataframe and model object for model evaluation
-model = TaskTrain().output().load()
-df_train = TaskPreprocess().output().load()
-print(sklearn.metrics.accuracy_score(df_train['y'],model.predict(df_train.iloc[:,:-1])))
-# 0.9733333333333334
-
-# Intelligently rerun workflow after changing a preprocessing parameter
-d6tflow.preview(TaskTrain(do_preprocess=False))
-
-'''
-└─--[TaskTrain-{'do_preprocess': 'False'} (PENDING)]
-   └─--[TaskPreprocess-{'do_preprocess': 'False'} (PENDING)]
-      └─--[TaskGetData-{} (COMPLETE)] => this doesn't change and doesn't need to rerun
-'''
-
-d6tflow.run(TaskTrain(do_preprocess=False)) # execute with new parameter
-
-```
 
 ## Documentation
 

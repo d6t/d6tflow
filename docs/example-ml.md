@@ -32,11 +32,10 @@ class TaskGetData(d6tflow.tasks.TaskPqPandas):  # save dataframe as parquet
         df_train['y'] = iris.target
         self.save(df_train) # quickly save dataframe
 
+
+@d6tflow.requires(TaskGetData) # define dependency
 class TaskPreprocess(d6tflow.tasks.TaskPqPandas):
     do_preprocess = luigi.BoolParameter(default=True) # parameter for preprocessing yes/no
-
-    def requires(self):
-        return TaskGetData() # define dependency
 
     def run(self):
         df_train = self.input().load() # quickly load required data
@@ -44,12 +43,9 @@ class TaskPreprocess(d6tflow.tasks.TaskPqPandas):
             df_train.iloc[:,:-1] = sklearn.preprocessing.scale(df_train.iloc[:,:-1])
         self.save(df_train)
 
-@inherits(TaskPreprocess)
+@d6tflow.requires(TaskPreprocess) # automatically pass parameters upstream
 class TaskTrain(d6tflow.tasks.TaskPickle): # save output as pickle
     model = luigi.Parameter(default='ols') # parameter for model selection
-
-    def requires(self):
-        return self.clone_parent() # automatically pass parameters upstream
 
     def run(self):
         df_train = self.input().load()
