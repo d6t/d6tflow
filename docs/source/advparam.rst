@@ -1,6 +1,8 @@
 Advanced: Parameters
 ==============================================
 
+Intelligent parameter management is one of the most powerful features of d6tflow. New users often have questions on parameter management, this is an important section to read.
+
 Specifying parameters
 ------------------------------------------------------------
 

@@ -34,6 +34,10 @@ Transition to d6tflow from typical scripts
 
 [5 Step Guide to Scalable Deep Learning Pipelines with d6tflow](https://htmlpreview.github.io/?https://github.com/d6t/d6t-python/blob/master/blogs/blog-20190813-d6tflow-pytorch.html)
 
+Parameter Management
+------------------------------------------------------------
+
+Intelligent parameter management is one of the most powerful features of d6tflow. New users often have questions on parameter management, this is an important section to read.
 
 User Guide
 ------------------------------------------------------------
