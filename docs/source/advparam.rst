@@ -22,9 +22,10 @@ Just pass the parameters values, everything else is the same.
 
 .. code-block:: python
 
-    d6tflow.run(TaskTrain(do_preprocess=True, model='nnet'))
-    d6tflow.run(TaskTrain(do_preprocess=True)) # use default model='xgboost'
+    d6tflow.run(TaskTrain() # use default do_preprocess=True, model='xgboost'
+    d6tflow.run(TaskTrain(do_preprocess=False, model='nnet')) # specify non-default parameters
 
+Note that you can pass parameters for upstream tasks directly to the terminal task, they will be automatically passed to upstream tasks. See below for details.
 
 Loading Output Data with Parameters
 ------------------------------------------------------------
@@ -33,7 +34,8 @@ If you are :doc:`using parameters <../advparam>` this is how you load outputs. M
 
 .. code-block:: python
 
-    df = TaskSingleOutput(param=value).output().load()
+    df = TaskTrain().output().load() # load data with default parameters
+    df = TaskTrain(do_preprocess=False, model='nnet').output().load() # specify non-default parameters
 
 
 Parameter types
@@ -62,7 +64,7 @@ Full reference https://luigi.readthedocs.io/en/stable/api/luigi.parameter.html
 Avoid repeating parameters in every class
 ------------------------------------------------------------
 
-You often need to pass parameters between classes. You can avoid having to repeat parameters in every class.
+You often need to pass parameters between classes. With d6tflow, you do not need to repeat parameters in every class, they are automatically managed, that is they are automatically passed to upstream tasks from downstream tasks.
 
 .. code-block:: python
 
@@ -73,16 +75,27 @@ You often need to pass parameters between classes. You can avoid having to repea
         dt_end = luigi.DateParameter(default=datetime.date(2020,1,1))
         # ...
 
-    @d6tflow.requires(TaskTrain)
+    @d6tflow.requires(TaskTrain) # automatically inherits parameters
     class TaskEvaluate(d6tflow.tasks.TaskPickle):
 
         # requires() is automatic
+        # do_preprocess => inherited from TaskTrain
+        # dt_start => inherited from TaskTrain
+        # dt_end => inherited from TaskTrain
 
         def run(self):
             print(self.do_preprocess) # inherited
             print(self.dt_start) # inherited
 
-If you require multiple tasks, you can inherit parameters from those tasks.
+    d6tflow.preview(TaskEvaluate(do_preprocess=False))  # specify non-default parameters
+    '''
+    └─--[TaskEvaluate-{'do_preprocess': 'False', 'dt_start': '2010-01-01', 'dt_end': '2020-01-01'} (PENDING)]
+    └─--[TaskTrain-{'do_preprocess': 'False', 'dt_start': '2010-01-01', 'dt_end': '2020-01-01'} (PENDING)] => automatically passed upstream
+    '''
+
+Note that you can pass parameters for upstream tasks directly to the terminal task, they will be automatically passed to upstream tasks. `do_preprocess=False` will be passed down from `TaskEvaluate` to `TaskTrain`.
+
+If you require multiple tasks, you can inherit parameters from those tasks. `TaskEvaluate` depeonds on both `TaskTrain` and `TaskPredict`.
 
 .. code-block:: python
 
@@ -93,26 +106,35 @@ If you require multiple tasks, you can inherit parameters from those tasks.
         dt_start = luigi.DateParameter(default=datetime.date(2010,1,1))
         dt_end = luigi.DateParameter(default=datetime.date(2020,1,1))
 
-    @d6tflow.inherits(TaskTrain,TaskPredict) # inherit all params from input tasks
+    @d6tflow.requires(TaskTrain,TaskPredict) # inherit all params from input tasks
     class TaskEvaluate(d6tflow.tasks.TaskPickle):
-
-        def requires(self):
-            return {'input1':TaskTrain(), 'input2':TaskPredict()}
+        # do_preprocess => inherited from TaskTrain
+        # dt_start => inherited from TaskPredict
+        # dt_end => inherited from TaskPredict
 
         def run(self):
             print(self.do_preprocess) # inherited from TaskTrain
             print(self.dt_start) # inherited from TaskPredict
 
-`@d6tflow.inherits` also works with aggregator tasks.
+    d6tflow.preview(TaskEvaluate(do_preprocess=False))  # specify non-default parameters
+    '''
+    └─--[TaskEvaluate-{'do_preprocess': 'False', 'dt_start': '2010-01-01', 'dt_end': '2020-01-01'} (PENDING)]
+       |--[TaskTrain-{'do_preprocess': 'False'} (PENDING)] => automatically passed upstream
+       └─--[TaskPredict-{'dt_start': '2010-01-01', 'dt_end': '2020-01-01'} (PENDING)] => automatically passed upstream
+    '''
+
+`@d6tflow.requires` also works with aggregator tasks.
 
 .. code-block:: python
 
-    @d6tflow.inherits(TaskTrain,TaskPredict) # inherit all params from input tasks
+    @d6tflow.requires(TaskTrain,TaskPredict) # inherit all params from input tasks
     class TaskEvaluate(d6tflow.tasks.TaskAggregator):
 
         def run(self):
             yield self.clone(TaskTrain)
             yield self.clone(TaskPredict)
+
+For another ML example see https://github.com/d6t/d6tflow/blob/master/docs/example-ml.md
 
 For more details see https://luigi.readthedocs.io/en/stable/api/luigi.util.html
 

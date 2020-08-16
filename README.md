@@ -19,6 +19,11 @@ Read more at:
 ![Badge](https://www.kdnuggets.com/images/tkb-1904-p.png "Badge")
 ![Badge](https://www.kdnuggets.com/images/tkb-1902-g.png "Badge")
 
+## When to use d6tflow?
+
+* Data engineering: prepare data - eg load, filter, join - with pandas or dask
+* Data science: analyze data - eg EDA, feature engineering, model training and evaluation, with ANY ML library including sklearn, pytorch, keras
+
 ## What can d6tflow do for you?
 
 * Build a data workflow made up of tasks with dependencies and parameters
@@ -26,6 +31,7 @@ Read more at:
 * Execute tasks including dependencies
 * Intelligently continue workflows after failed tasks
 * Intelligently rerun workflow after changing parameters, code or data
+* Intelligently manage parameters between dependencies
 * Save task output to Parquet, CSV, JSON, pickle and in-memory
 * Load task output to pandas dataframe and python objects
 * Quickly share and hand off output data to others
@@ -81,7 +87,8 @@ d6tflow.run(Task3())
     - 1 Task3(multiplier=2)
 '''
 
-Task3().outputLoad() # quickly load output data. Task1().outputLoad() also works
+# quickly load output data. Task1().outputLoad() also works
+Task3().outputLoad() 
 '''
    a1  a2  b
 0   0   0  0
