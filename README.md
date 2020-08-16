@@ -12,29 +12,34 @@ The workflow involves chaining together parameterized tasks which pass multiple 
 
 `d6tflow` to the rescue! **With d6tflow you can easily chain together complex data flows and execute them. You can quickly load input and output data for each task.** It makes your workflow very clear and intuitive.
 
-Read more at:  
+#### When to use d6tflow?
+
+* Data engineering: when you prepare and analyze data with pandas or dask. That is you load, filter, transform, join data
+* Data science: when you analyze data with ANY ML library including sklearn, pytorch, keras. That is you perform EDA, feature engineering, model training and evaluation
+
+#### Read more at:  
 [4 Reasons Why Your Machine Learning Code is Probably Bad](https://github.com/d6t/d6t-python/blob/master/blogs/reasons-why-bad-ml-code.rst)  
 [How d6tflow is different from airflow/luigi](https://github.com/d6t/d6t-python/blob/master/blogs/datasci-dags-airflow-meetup.md)
 
 ![Badge](https://www.kdnuggets.com/images/tkb-1904-p.png "Badge")
 ![Badge](https://www.kdnuggets.com/images/tkb-1902-g.png "Badge")
 
-## When to use d6tflow?
-
-* Data engineering: prepare data - eg load, filter, join - with pandas or dask
-* Data science: analyze data - eg EDA, feature engineering, model training and evaluation, with ANY ML library including sklearn, pytorch, keras
-
 ## What can d6tflow do for you?
 
-* Build a data workflow made up of tasks with dependencies and parameters
-* Check task dependencies and their execution status
-* Execute tasks including dependencies
-* Intelligently continue workflows after failed tasks
-* Intelligently rerun workflow after changing parameters, code or data
-* Intelligently manage parameters between dependencies
-* Save task output to Parquet, CSV, JSON, pickle and in-memory
-* Load task output to pandas dataframe and python objects
-* Quickly share and hand off output data to others
+* Data engineering  
+	* Build a data workflow made up of tasks with dependencies and parameters
+	* Check task dependencies and their execution status
+	* Execute tasks including dependencies
+	* Intelligently continue workflows after failed tasks
+	* Intelligently rerun workflow after changing parameters, code or data
+	* Intelligently manage parameters between dependencies
+	* Save task output to Parquet, CSV, JSON, pickle and in-memory
+	* Load task output to pandas dataframe and python objects
+	* Quickly share and hand off output data to others
+* Data science  
+	* Scalable workflows: build an efficient data workflow made up of tasks with dependencies and parameters
+	* Experiment tracking: compare model performance with different preprocessing and model selection options
+	* Model deployment: d6tflow workflows are easier to deploy to production
 
 
 ## Installation
