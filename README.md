@@ -112,12 +112,12 @@ d6tflow.preview(Task3(multiplier=3))
 ```
 
 
-## Example: ML Workflow
+## Example: Comparing model performance in ML Workflow
 
-Below is sample output for a machine learning workflow. `TaskTrain()` depends on `TaskPreprocess()` which in turn depends on `TaskGetData()`. In the end you want to train and evaluate a model but that requires running multiple dependencies. 
+Below is sample output for a machine learning workflow. The goal is to efficiently compare the performance of two ML models.  
 
 **[See the full example here](http://tiny.cc/d6tflow-start-example)**  
-**[Interactive mybinder example](http://tiny.cc/d6tflow-start-interactive)**
+**[Interactive mybinder jupyter notebook example](http://tiny.cc/d6tflow-start-interactive)**
 
 
 ## Documentation
@@ -136,8 +136,8 @@ To quickly share workflow outputs, we recommend you make use of [d6tpipe](https:
 ## Pro version
 
 Additional features:  
-* SQL target storage
-* Dask and pyspark integration
+* Integrations for enterprise and cloud storage (SQL, S3)
+* Integrations for distributed copmute (dask, pyspark)
 * Automatically detect data changes
 * Advanced machine learning features
 
