@@ -27,9 +27,9 @@ import pandas as pd
 class TaskGetData(d6tflow.tasks.TaskPqPandas):  # save dataframe as parquet
 
     def run(self):
-        iris = sklearn.datasets.load_iris()
-        df_train = pd.DataFrame(iris.data,columns=['feature{}'.format(i) for i in range(4)])
-        df_train['y'] = iris.target
+        ds = sklearn.datasets.load_breast_cancer()
+        df_train = pd.DataFrame(ds.data, columns=ds.feature_names)
+        df_train['y'] = ds.target
         self.save(df_train) # quickly save dataframe
 
 
@@ -55,7 +55,7 @@ class TaskTrain(d6tflow.tasks.TaskPickle): # save output as pickle
             model = sklearn.svm.SVC()
         else:
             raise ValueError('invalid model selection')
-        model.fit(df_train.iloc[:,:-1], df_train['y'])
+        model.fit(df_train.drop('y',1), df_train['y'])
         self.save(model)
 
 # goal: compare performance of two models
@@ -90,15 +90,15 @@ d6tflow.run(TaskTrain(**params_model2))
 # compare results from new model
 # Load task output to pandas dataframe and model object for model evaluation
 
-model = TaskTrain(**params_model1).output().load()
-df_train = TaskPreprocess(do_preprocess=True).output().load()
-print(sklearn.metrics.accuracy_score(df_train['y'],model.predict(df_train.iloc[:,:-1])))
-# 0.96
+model1 = TaskTrain(**params_model1).output().load()
+df_train = TaskPreprocess(**params_model1).output().load()
+print(model1.score(df_train.drop('y',1), df_train['y']))
+# 0.987
 
-model = TaskTrain(**params_model2).output().load()
-df_train = TaskPreprocess(do_preprocess=False).output().load()
-print(sklearn.metrics.accuracy_score(df_train['y'],model.predict(df_train.iloc[:,:-1])))
-# 0.9733333333333334
+model2 = TaskTrain(**params_model2).output().load()
+df_train = TaskPreprocess(**params_model2).output().load()
+print(model2.score(df_train.drop('y',1), df_train['y']))
+# 0.922
 
 ```
 

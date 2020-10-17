@@ -33,7 +33,18 @@ You could also use this to load an unknown number of files as a starting point f
 Collector Task
 ------------------------------------------------------------
 
-If you want to run the workflow with multiple parameters at the same time or run multiple tasks, you can use `TaskAggregator` to yield multiple tasks. This task should do nothing but yield other tasks.
+If you want to spawn multiple tasks without processing any of the outputs, you can use `TaskAggregator`.  This task should do nothing but yield other tasks.
+
+.. code-block:: python
+
+    @d6tflow.requires(TrainModel1,TrainModel2) # inherit all params from input tasks
+    class TrainAllModels(d6tflow.tasks.TaskAggregator):
+
+        def run(self):
+            yield self.clone(TrainModel1)
+            yield self.clone(TrainModel2)
+
+If you want to run the workflow with multiple parameters at the same time, you can use `TaskAggregator` to yield multiple tasks.
 
 .. code-block:: python
 

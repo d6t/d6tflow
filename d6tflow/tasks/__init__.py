@@ -29,6 +29,18 @@ class TaskData(luigi.Task):
     target_ext = 'ext'
     persist = ['data']
 
+    def __init__(self, *args, **kwargs):
+        kwargs_ = {k:v for k,v in kwargs.items() if k in self.get_param_names()}
+        super().__init__(*args, **kwargs_)
+
+    @classmethod
+    def get_param_values(cls, params, args, kwargs):
+        kwargs_ = {k:v for k,v in kwargs.items() if k in cls.get_param_names()}
+        return super(TaskData,cls).get_param_values(params, args, kwargs_)
+
+    def reset(self, confirm=True):
+        return self.invalidate(confirm)
+
     def invalidate(self, confirm=True):
         """
         Invalidate a task, eg by deleting output file
@@ -263,9 +275,3 @@ class TaskAggregator(luigi.Task):
     def outputLoad(self, keys=None, as_dict=False, cached=False):
         return [t.outputLoad(keys,as_dict,cached) for t in self.run()]
 
-class TaskMatplotlib(TaskData):
-    """
-    Task which saves plots to png, does not load
-    """
-    target_class = d6tflow.targets.MatplotlibTarget
-    target_ext = 'png'
