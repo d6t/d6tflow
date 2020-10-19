@@ -3,6 +3,14 @@ import luigi
 from luigi.task import flatten
 import luigi.tools.deps
 from luigi.util import inherits, requires
+from luigi.parameter import (
+    Parameter,
+    DateParameter, MonthParameter, YearParameter, DateHourParameter, DateMinuteParameter, DateSecondParameter,
+    DateIntervalParameter, TimeDeltaParameter,
+    IntParameter, FloatParameter, BoolParameter,
+    TaskParameter, EnumParameter, DictParameter, ListParameter, TupleParameter,
+    NumericalParameter, ChoiceParameter, OptionalParameter
+)
 
 import d6tcollect
 d6tcollect.submit = False
@@ -39,19 +47,21 @@ def set_dir(dir=None):
     return dirpath
 
 
-def preview(tasks, indent='', last=True, clip_params=False):
+def preview(tasks, indent='', last=True, show_params=True, clip_params=False):
     """
     Preview task flows
 
     Args:
         tasks (obj, list): task or list of tasks
     """
+    print('\n ===== Luigi Execution Preview ===== \n')
     if not isinstance(tasks, (list,)):
         tasks = [tasks]
     for t in tasks:
-        print(d6tflow.utils.print_tree(t, indent=indent, last=last, clip_params=clip_params))
+        print(d6tflow.utils.print_tree(t, indent=indent, last=last, show_params= show_params, clip_params=clip_params))
+    print('\n ===== Luigi Execution Preview ===== \n')
 
-def run(tasks, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, **kwargs):
+def run(tasks, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, **kwargs):
     """
     Run tasks locally. See luigi.build for additional details
 
@@ -63,6 +73,7 @@ def run(tasks, forced=None, forced_all=False, forced_all_upstream=False, confirm
         confirm (list): confirm invalidating tasks
         workers (int): number of workers
         abort (bool): on errors raise exception
+        execution_summary (bool): print execution summary
         kwargs: keywords to pass to luigi.build
 
     """
@@ -94,11 +105,16 @@ def run(tasks, forced=None, forced_all=False, forced_all_upstream=False, confirm
             else:
                 return None
 
+    execution_summary = execution_summary if execution_summary is not None else d6tflow.settings.execution_summary
     opts = {**{'workers':workers, 'local_scheduler':True, 'log_level':d6tflow.settings.log_level},**kwargs}
+    if execution_summary:
+        opts['detailed_summary']=True
     result = luigi.build(tasks, **opts)
-    if abort and not result:
-        raise RuntimeError('Exception found running flow, check trace')
+    if abort and not result.scheduling_succeeded:
+        raise RuntimeError('Exception found running flow, check trace. For more details see https://d6tflow.readthedocs.io/en/latest/run.html#debugging-failures')
 
+    if execution_summary:
+        print(result.summary_text)
     return result
 
 def taskflow_upstream(task, only_complete=False):

@@ -187,11 +187,19 @@ You can always run single tasks by calling the `run()` function. This is useful 
     # forcing execution
     TaskTrain().run()
 
-Reducing Logging Output
+Hiding Execution Output
 ------------------------------------------------------------
 
-You can control how much output is displayed by changing the log level. Default is ``INFO``. It is a global setting, modify before you execute ``d6tflow.run()``.
+By default, the workflow execution summary is shown, because it shows important information which tasks were run and if any failed. At times, eg during deployment, it can be desirable to not show the execution output.
 
 .. code-block:: python
 
-    d6tflow.settings.log_level = 'INFO' # 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
+    d6tflow.settings.execution_summary = False # global
+    # or
+    d6tflow.run(Task() ,execution_summary=False) # at each run
+
+While typically not necessary, you can control change the log level to see additional log data. Default is ``WARNING``. It is a global setting, modify before you execute ``d6tflow.run()``.
+
+.. code-block:: python
+
+    d6tflow.settings.log_level = 'WARNING' # 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'

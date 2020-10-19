@@ -11,6 +11,7 @@ db=dirpath/'.d6tflow.json'
 
 check_dependencies = True
 check_crc = False
-log_level = 'INFO'
+log_level = 'WARNING'
+execution_summary = True
 
 uri = None

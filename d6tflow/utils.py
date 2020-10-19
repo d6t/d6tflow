@@ -5,7 +5,7 @@ import warnings
 
 from luigi.tools.deps_tree import bcolors
 
-def print_tree(task, indent='', last=True, clip_params=False):
+def print_tree(task, indent='', last=True, show_params=True, clip_params=False):
     '''
     Return a string representation of the tasks, their statuses/parameters in a dependency tree format
     '''
@@ -15,10 +15,13 @@ def print_tree(task, indent='', last=True, clip_params=False):
         is_task_complete = task.complete()
     is_complete = (bcolors.OKGREEN + 'COMPLETE' if is_task_complete else bcolors.OKBLUE + 'PENDING') + bcolors.ENDC
     name = task.__class__.__name__
-    params = task.to_str_params(only_significant=True)
-    if len(params)>1 and clip_params:
-        params = next(iter(params.items()), None)  # keep only one param
-        params = str(dict([params]))+'[more]'
+    if show_params:
+        params = task.to_str_params(only_significant=True)
+        if len(params)>1 and clip_params:
+            params = next(iter(params.items()), None)  # keep only one param
+            params = str(dict([params]))+'[more]'
+    else:
+        params = ''
     result = '\n' + indent
     if(last):
         result += '└─--'
