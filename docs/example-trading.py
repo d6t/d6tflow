@@ -21,7 +21,6 @@ class GetDataEcon(d6tflow.tasks.TaskPqPandas):
     date_end = d6tflow.DateParameter() # define parameters
 
     def run(self):
-        1 / 0
         df_gdp = pddr.DataReader('CPGDPAI', 'fred', self.date_start, self.date_end)
         self.save(df_gdp)
 
@@ -85,18 +84,18 @@ params3 = params1.copy()
 params3['date_start']= datetime.date(2019,1,1) # run another time period
 
 #************************************************************
-# run experiments
+# run backtests
 #************************************************************
 
 # for demo purposes only: reset everything at every run
 import shutil
-shutil.rmtree(d6tflow.settings.dirpath, ignore_errors=True)
+# shutil.rmtree(d6tflow.settings.dirpath, ignore_errors=True)
 
 
 # run backtest including necessary dependencies
 for istrat, params in enumerate([params1,params2,params3]):
     print(f'run strategy #{istrat+1}')
-    print(d6tflow.preview(Backtest(**params)))  # show which tasks will be run
+    # print(d6tflow.preview(Backtest(**params)))  # show which tasks will be run
     d6tflow.run(Backtest(**params))
     df_pnl1 = Backtest(**params).output()['pnl'].load() # load task output
     print(f'pnl strategy #{istrat+1}:', df_pnl1.sum().sum().round(3))
@@ -104,6 +103,102 @@ for istrat, params in enumerate([params1,params2,params3]):
 def dev():
     TradingSignals(**params1).reset() # reset after making updates
 
+
+#************************************************************
+# backtest output
+#************************************************************
+
+'''
+run strategy #1
+
+ ===== Luigi Execution Preview ===== 
+
+
+└─--[Backtest-{'date_start': '2018-01-01', 'date_end': '2020-01-01', 'lookback_period': '1', 'symbols': '["CAT", "WMT"]'} (PENDING)]
+   |--[TradingSignals- (PENDING)]
+   |  └─--[GetDataEcon- (PENDING)]
+   └─--[GetDataPx- (PENDING)]
+      └─--[GetDataEcon- (PENDING)]
+
+ ===== Luigi Execution Preview ===== 
+
+None
+
+===== Luigi Execution Summary =====
+
+Scheduled 4 tasks of which:
+* 4 ran successfully:
+    - 1 Backtest(date_start=2018-01-01, date_end=2020-01-01, lookback_period=1, symbols=["CAT", "WMT"])
+    - 1 GetDataEcon(date_start=2018-01-01, date_end=2020-01-01)
+    - 1 GetDataPx(date_start=2018-01-01, date_end=2020-01-01, symbols=["CAT", "WMT"])
+    - 1 TradingSignals(date_start=2018-01-01, date_end=2020-01-01, lookback_period=1)
+
+This progress looks :) because there were no failed tasks or missing dependencies
+
+===== Luigi Execution Summary =====
+
+pnl strategy #1: -0.029
+run strategy #2
+
+ ===== Luigi Execution Preview ===== 
+
+
+└─--[Backtest-{'date_start': '2018-01-01', 'date_end': '2020-01-01', 'lookback_period': '1', 'symbols': '["MSFT", "FB"]'} (PENDING)]
+   |--[TradingSignals- (COMPLETE)]
+   |  └─--[GetDataEcon- (COMPLETE)]
+   └─--[GetDataPx- (PENDING)]
+      └─--[GetDataEcon- (COMPLETE)]
+
+ ===== Luigi Execution Preview ===== 
+
+None
+
+===== Luigi Execution Summary =====
+
+Scheduled 4 tasks of which:
+* 2 complete ones were encountered:
+    - 1 GetDataEcon(date_start=2018-01-01, date_end=2020-01-01)
+    - 1 TradingSignals(date_start=2018-01-01, date_end=2020-01-01, lookback_period=1)
+* 2 ran successfully:
+    - 1 Backtest(date_start=2018-01-01, date_end=2020-01-01, lookback_period=1, symbols=["MSFT", "FB"])
+    - 1 GetDataPx(date_start=2018-01-01, date_end=2020-01-01, symbols=["MSFT", "FB"])
+
+This progress looks :) because there were no failed tasks or missing dependencies
+
+===== Luigi Execution Summary =====
+
+pnl strategy #2: -0.16
+run strategy #3
+
+ ===== Luigi Execution Preview ===== 
+
+
+└─--[Backtest-{'date_start': '2019-01-01', 'date_end': '2020-01-01', 'lookback_period': '1', 'symbols': '["CAT", "WMT"]'} (PENDING)]
+   |--[TradingSignals- (PENDING)]
+   |  └─--[GetDataEcon- (PENDING)]
+   └─--[GetDataPx- (PENDING)]
+      └─--[GetDataEcon- (PENDING)]
+
+ ===== Luigi Execution Preview ===== 
+
+None
+
+===== Luigi Execution Summary =====
+
+Scheduled 4 tasks of which:
+* 4 ran successfully:
+    - 1 Backtest(date_start=2019-01-01, date_end=2020-01-01, lookback_period=1, symbols=["CAT", "WMT"])
+    - 1 GetDataEcon(date_start=2019-01-01, date_end=2020-01-01)
+    - 1 GetDataPx(date_start=2019-01-01, date_end=2020-01-01, symbols=["CAT", "WMT"])
+    - 1 TradingSignals(date_start=2019-01-01, date_end=2020-01-01, lookback_period=1)
+
+This progress looks :) because there were no failed tasks or missing dependencies
+
+===== Luigi Execution Summary =====
+
+pnl strategy #3: -0.449
+
+'''
 #************************************************************
 # Disclaimer
 # These materials, and any other information or data conveyed in connection with these materials, is intended for informational purposes only. Under no circumstances are these materials, or any information or data conveyed in connection with such report, to be considered an offer or solicitation of an offer to buy or sell any securities of any company. Nor may these materials, or any information or data conveyed in connection with such report, be relied on in any manner as legal, tax or investment advice. The information and data is not intended to be used as the primary basis of investment decisions and nothing contained herein or conveyed in connection therewith is, or is intended to be, predictive of the movement of the market prices of the securities of the applicable company or companies. The facts and opinions presented are those of the author only and not official opinions of any financial instition.
