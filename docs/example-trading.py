@@ -67,41 +67,39 @@ class Backtest(d6tflow.tasks.TaskPqPandas):
 
         self.save({'portfolio':df_portfolio,'pnl':df_pnl})
 
+# for demo purposes only: reset everything at every run
+import shutil
+shutil.rmtree(d6tflow.settings.dirpath, ignore_errors=True)
 
 #************************************************************
 # define experiments
 #************************************************************
 
-params1 = dict(
+strategy1 = dict(
     date_start=datetime.date(2018,1,1),
     date_end=datetime.date(2020,1,1),
     symbols = ['CAT','WMT'],
     lookback_period = 1
     )
-params2 = params1.copy()
-params2['symbols']=['MSFT','FB'] # run another universe
-params3 = params1.copy()
-params3['date_start']= datetime.date(2019,1,1) # run another time period
+strategy2 = strategy1.copy()
+strategy2['symbols']=['MSFT','FB'] # run another universe
+strategy3 = strategy1.copy()
+strategy3['date_start']= datetime.date(2019,1,1) # run another time period
 
 #************************************************************
 # run backtests
 #************************************************************
 
-# for demo purposes only: reset everything at every run
-import shutil
-# shutil.rmtree(d6tflow.settings.dirpath, ignore_errors=True)
-
-
 # run backtest including necessary dependencies
-for istrat, params in enumerate([params1,params2,params3]):
+for istrat, strategy in enumerate([strategy1,strategy2,strategy3]):
     print(f'run strategy #{istrat+1}')
-    # print(d6tflow.preview(Backtest(**params)))  # show which tasks will be run
-    d6tflow.run(Backtest(**params))
-    df_pnl1 = Backtest(**params).output()['pnl'].load() # load task output
+    print(d6tflow.preview(Backtest(**strategy)))  # show which tasks will be run
+    d6tflow.run(Backtest(**strategy))
+    df_pnl1 = Backtest(**strategy).output()['pnl'].load() # load task output
     print(f'pnl strategy #{istrat+1}:', df_pnl1.sum().sum().round(3))
 
 def dev():
-    TradingSignals(**params1).reset() # reset after making updates
+    TradingSignals(**strategy1).reset() # reset after making updates
 
 
 #************************************************************
@@ -201,6 +199,10 @@ pnl strategy #3: -0.449
 '''
 #************************************************************
 # Disclaimer
-# These materials, and any other information or data conveyed in connection with these materials, is intended for informational purposes only. Under no circumstances are these materials, or any information or data conveyed in connection with such report, to be considered an offer or solicitation of an offer to buy or sell any securities of any company. Nor may these materials, or any information or data conveyed in connection with such report, be relied on in any manner as legal, tax or investment advice. The information and data is not intended to be used as the primary basis of investment decisions and nothing contained herein or conveyed in connection therewith is, or is intended to be, predictive of the movement of the market prices of the securities of the applicable company or companies. The facts and opinions presented are those of the author only and not official opinions of any financial instition.
+# These materials, and any other information or data conveyed in connection with these materials, is intended for informational purposes only. Under no circumstances are these materials, or any information or data conveyed in connection with such report, to be considered an offer or solicitation of an offer to buy or sell any securities of any company. Nor may these materials, or any information or data conveyed in connection with such report, be relied on in any manner as legal, tax or investment advice. The information and data is not intended to be used as the primary basis of investment decisions and nothing contained herein or conveyed in connection therewith is, or is intended to be, predictive of the movement of the market prices of the securities of the applicable company or companies. The facts and opinions presented are those of the author only and not official opinions of any financial instituion.
 #************************************************************
+
+# interactive notebook 
+# https://mybinder.org/v2/gh/d6tdev/d6tflow-binder-interactive/master?filepath=example-trading.ipynb
+
 
