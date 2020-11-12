@@ -2,7 +2,7 @@ import warnings
 import luigi
 from luigi.task import flatten
 import luigi.tools.deps
-from luigi.util import inherits, requires
+from luigi.util import inherits as luigi_inherits, requires as luigi_requires
 from luigi.parameter import (
     Parameter,
     DateParameter, MonthParameter, YearParameter, DateHourParameter, DateMinuteParameter, DateSecondParameter,
@@ -236,49 +236,22 @@ def clone_parent(cls):
     setattr(cls, 'requires', requires)
     return cls
 
-class inherits:
+#Like luigi.utils.inherits but for handling dictionaries
+class dict_inherits:
     def __init__(self, *tasks_to_inherit):
-        super(inherits, self).__init__()
+        super(dict_inherits, self).__init__()
         if not tasks_to_inherit:
             raise TypeError("tasks_to_inherit cannot be empty")
-
-        #if the tuple contains a dict, we should parse it as one.
-        if isinstance(tasks_to_inherit[0], dict):
-            self.tasks_to_inherit = tasks_to_inherit[0]
-        else:
-            self.tasks_to_inherit = tasks_to_inherit
+        #We know the first arg is a dict.
+        self.tasks_to_inherit = tasks_to_inherit[0]
         
-
     def __call__(self, task_that_inherits):
-        # Get all parameter objects from each of the underlying tasks
-
-        #if task_to_inherit is a dict than process it differently
-        if isinstance(self.tasks_to_inherit, dict):
-            for task_to_inherit in self.tasks_to_inherit:                   
-                for param_name, param_obj in self.tasks_to_inherit[task_to_inherit].get_params():
-                    # Check if the parameter exists in the inheriting task                    
-                    if not hasattr(task_that_inherits, param_name):
-                        # If not, add it to the inheriting task
-                        setattr(task_that_inherits, param_name, param_obj)
-        else:
-            for task_to_inherit in self.tasks_to_inherit:
-                for param_name, param_obj in task_to_inherit.get_params():
-                    # Check if the parameter exists in the inheriting task    
-                    if not hasattr(task_that_inherits, param_name):
-                        # If not, add it to the inheriting task
-                        setattr(task_that_inherits, param_name, param_obj)
-
-        # Modify task_that_inherits by adding methods
-        def clone_parent(_self, **kwargs):
-            return _self.clone(cls=self.tasks_to_inherit[0], **kwargs)
-        task_that_inherits.clone_parent = clone_parent
-
-        def clone_parents(_self, **kwargs):
-            return [
-                _self.clone(cls=task_to_inherit, **kwargs)
-                for task_to_inherit in self.tasks_to_inherit
-            ]
-        task_that_inherits.clone_parents = clone_parents
+        for task_to_inherit in self.tasks_to_inherit:                   
+            for param_name, param_obj in self.tasks_to_inherit[task_to_inherit].get_params():
+                # Check if the parameter exists in the inheriting task                    
+                if not hasattr(task_that_inherits, param_name):
+                    # If not, add it to the inheriting task
+                    setattr(task_that_inherits, param_name, param_obj)
 
         #adding dictionary functionality
         def clone_parents_dict(_self, **kwargs):
@@ -290,35 +263,31 @@ class inherits:
         return task_that_inherits
 
 
-#Like luigi.utils.requires but with extra functionality
-class requires:
+#Like luigi.utils.requires but for handling dictionaries
+class dict_requires:
     def __init__(self, *tasks_to_require):
-        super(requires, self).__init__()
+        super(dict_requires, self).__init__()
         if not tasks_to_require:
             raise TypeError("tasks_to_require cannot be empty")
         
-        #if the tuple contains a dict, we should parse it as one.
-        if isinstance(tasks_to_require[0], dict):
-            self.tasks_to_require = tasks_to_require[0]
-        else:
-            self.tasks_to_require = tasks_to_require
+        self.tasks_to_require = tasks_to_require[0] #Assign the dictionary 
 
     def __call__(self, task_that_requires):
-        
-        #only unpack if self.tasks_to_require is a tuple
-        if isinstance(self.tasks_to_require, dict):
-            task_that_requires = inherits(self.tasks_to_require)(task_that_requires)
-        else:
-            task_that_requires = inherits(*self.tasks_to_require)(task_that_requires)
-
-        # Modify task_that_requires by adding requires method.
-        # If only one task is required, this single task is returned.
-        # If a dictionary of tasks is required than a dictionary of tasks is returned
-        # Otherwise, list of tasks is returned
+        task_that_requires = dict_inherits(self.tasks_to_require)(task_that_requires)
         def requires(_self):
-            if isinstance(self.tasks_to_require, dict):
-                return _self.clone_parents_dict()
-            return _self.clone_parent() if len(self.tasks_to_require) == 1 else _self.clone_parents()
+            return _self.clone_parents_dict()
+            
         task_that_requires.requires = requires
 
         return task_that_requires
+
+def inherits(*tasks_to_inherit):
+    if isinstance(tasks_to_inherit[0], dict):
+        return dict_inherits(*tasks_to_inherit)
+    return luigi_inherits(*tasks_to_inherit)
+
+def requires(*tasks_to_require):
+    #Check the type; if a dictionary call our custom requires decorator
+    if isinstance(tasks_to_require[0], dict):
+        return dict_requires(*tasks_to_require)
+    return luigi_requires(*tasks_to_require)
