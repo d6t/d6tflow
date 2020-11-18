@@ -146,16 +146,16 @@ def test_tasks(cleanup):
         def requires(self):
             return {1:Task1(), 2:Task1()}
         def run(self):
-            dft1, dft2 = self.inputLoad()
-            assert dft1.equals(dft2)
+            input = self.inputLoad()
+            assert input[1].equals(input[2])
     TaskMultiInput().run()
 
     class TaskMultiInput2(d6tflow.tasks.TaskCache):
         def requires(self):
-            return {'in1':Task2(), 'in1':Task2()}
+            return {'in1':Task2(), 'in2':Task2()}
         def run(self):
-            df2, df4 = self.inputLoad(task='in1')
-            assert df2.equals(dfc2) and df4.equals(dfc4)
+            input = self.inputLoad(task='in1')
+            assert input['df2'].equals(dfc2) and input['df4'].equals(dfc4)
     TaskMultiInput2().run()
 
     # check downstream incomplete
@@ -232,6 +232,34 @@ def test_requires():
     task3 = Task3()
     d6tflow.run(task3)
 
+
+def test_multiple_deps_on_input_load():
+    # define 2 tasks that load raw data
+    class Task1(d6tflow.tasks.TaskCache):
+        persist = ['a1','a2']
+        def run(self):
+            df = pd.DataFrame({'a':range(3)})
+            self.save({'a1':df,'a2':df}) # quickly save dataframe
+
+    class Task2(d6tflow.tasks.TaskCache):
+        def run(self):
+            df = pd.DataFrame({'a':range(3)})
+            self.save(df) # quickly save dataframe
+
+    # define another task that depends on data from task1 and task2
+    @d6tflow.requires(Task1,Task2)
+    class Task3(d6tflow.tasks.TaskCache):
+        def run(self):
+            data = self.inputLoad() # ===> implement this
+            df1 = data[0]['a1']
+            assert df1.equals(data[0]['a2'])
+            df2 = data[1]
+            assert df2.equals(df1)
+            df = df1.join(df2, lsuffix='1', rsuffix='2')
+            self.save(df)
+
+# Execute task including all its dependencies
+d6tflow.run(Task3(),forced_all_upstream=True,confirm=False)
 
 def test_params(cleanup):
     class TaskParam(d6tflow.tasks.TaskCache):
