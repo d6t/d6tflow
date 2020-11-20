@@ -291,3 +291,62 @@ def requires(*tasks_to_require):
     if isinstance(tasks_to_require[0], dict):
         return dict_requires(*tasks_to_require)
     return luigi_requires(*tasks_to_require)
+
+
+class Workflow:
+    """
+        Workflow object for easier interaction with tasks.
+    """
+    def __init__(self, tasks: dict, params: dict=None):
+        """
+            Defines and assigns tasks and their respective params.
+        """
+        self.tasks = tasks
+        self.params = params
+        self._assign_task_params()
+
+    def run(self, **kwargs):
+        """ 
+            Runs all the tasks that are present in the __main__ file
+        """
+        for task in self.tasks:
+            self.tasks[task] = self.tasks[task](**self.task_params[task])
+        run(list(self.tasks.values()), **kwargs)
+
+    def outputLoad(self, task):
+        """
+            Calls the outputLoad method of the task with as_dict set to true by default.
+        """
+        return self.tasks[task].outputLoad(as_dict=True)
+
+    def _assign_task_params(self):
+        """
+            Correctly assigns params to their respective tasks
+        """
+        self.task_params = {}
+        for task in self.tasks:
+            params = {}
+            for param in self.params:
+                if param in self.tasks[task].__dict__:
+                    params[param] = self.params[param]
+            self.task_params[task] = params
+
+
+def flow(params=None):
+    """
+        Collects all tasks from the caller scope and
+        creates a Workflow object with params given.
+    """
+
+    #Inspect magic to get variables in caller scope
+    import inspect
+    frame = inspect.currentframe()
+    frame = frame.f_back
+    variables = frame.f_locals
+
+    tasks = {}
+    for variable in variables:
+        #Add to tasks dictionary if variable is a luigi task.
+        if isinstance(variables[variable], luigi.task_register.Register):
+            tasks[variable] = variables[variable]
+    return Workflow(tasks, params)
