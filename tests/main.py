@@ -232,6 +232,35 @@ def test_requires():
     task3 = Task3()
     d6tflow.run(task3)
 
+def test_flow():
+    class Task1(d6tflow.tasks.TaskCache):
+        persist = ['a1','a2']
+        def run(self):
+            df = pd.DataFrame({'a':range(3)})
+            self.save({'a1':df,'a2':df}) 
+    class Task2(d6tflow.tasks.TaskCache):
+        def run(self):
+            df = pd.DataFrame({'a':range(3)})
+            self.save(df) 
+            
+    @d6tflow.requires(Task1,Task2)
+    class Task3(d6tflow.tasks.TaskCache):
+        multiplier = d6tflow.IntParameter()
+        def run(self):
+            df1 = self.input()[0]['a1'].load()
+            df2 = self.input()[1].load()
+            assert df2.equals(df1)
+            df = df1.join(df2, lsuffix='1', rsuffix='2')
+            df['b']=df['a1']*self.multiplier # use task parameter
+            self.save(df)
+
+    params = dict(multiplier=2)
+    dag = d6tflow.flow(params=params)
+    dag.run(forced_all_upstream=True,confirm=False)
+    print(dag.outputLoad('Task1'))
+    assert dag.outputLoad('Task1')['a1'].equals(dag.outputLoad('Task2'))
+    dfc = dag.outputLoad('Task3')
+    assert (dfc['b']==dfc['a1']*params['multiplier']).all()
 
 def test_multiple_deps_on_input_load():
     # define 2 tasks that load raw data
