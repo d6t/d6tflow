@@ -80,7 +80,10 @@ def run(tasks, forced=None, forced_all=False, forced_all_upstream=False, confirm
     if not isinstance(tasks, (list,)):
         tasks = [tasks]
 
-    if forced_all:
+    #if forced_all_upstream is true we are going to force run tasks anyway 
+    # in the second if condition.
+    # So in this case we are going to skip running forced tasks.
+    if forced_all and not forced_all_upstream:
         forced = tasks
     if forced_all_upstream:
         for t in tasks:
