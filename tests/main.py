@@ -256,8 +256,18 @@ def test_flow():
 
     params = dict(multiplier=2)
     dag = d6tflow.flow(params=params)
+
     dag.run(forced_all_upstream=True,confirm=False)
-    print(dag.outputLoad('Task1'))
+    assert dag.outputLoad('Task1')['a1'].equals(dag.outputLoad('Task2'))
+    dfc = dag.outputLoad('Task3')
+    assert (dfc['b']==dfc['a1']*params['multiplier']).all()
+
+    dag.run('Task3',forced_all_upstream=True,confirm=False) # d6tflow.run(Task3())
+    assert dag.outputLoad('Task1')['a1'].equals(dag.outputLoad('Task2'))
+    dfc = dag.outputLoad('Task3')
+    assert (dfc['b']==dfc['a1']*params['multiplier']).all()
+
+    dag.run(['Task3'],forced_all_upstream=True,confirm=False) # d6tflow.run([Task3()])
     assert dag.outputLoad('Task1')['a1'].equals(dag.outputLoad('Task2'))
     dfc = dag.outputLoad('Task3')
     assert (dfc['b']==dfc['a1']*params['multiplier']).all()
@@ -287,8 +297,8 @@ def test_multiple_deps_on_input_load():
             df = df1.join(df2, lsuffix='1', rsuffix='2')
             self.save(df)
 
-# Execute task including all its dependencies
-d6tflow.run(Task3(),forced_all_upstream=True,confirm=False)
+    # Execute task including all its dependencies
+    d6tflow.run(Task3(),forced_all_upstream=True,confirm=False)
 
 def test_params(cleanup):
     class TaskParam(d6tflow.tasks.TaskCache):
