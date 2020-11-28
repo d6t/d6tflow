@@ -302,16 +302,19 @@ class Workflow:
             Defines and assigns tasks and their respective params.
         """
         self.tasks = tasks
-        self.params = params
+        self.params = params if params else {}
         self._assign_task_params()
 
-    def run(self, **kwargs):
+    def run(self,tasks_provided=None, **kwargs):
         """ 
             Runs all the tasks that are present in the __main__ file
+            tasks_provided can either be a list or a single string
         """
-        for task in self.tasks:
-            self.tasks[task] = self.tasks[task](**self.task_params[task])
-        run(list(self.tasks.values()), **kwargs)
+        if not tasks_provided:
+            run(list(self.tasks.values()), **kwargs)
+        else:
+            tasks_provided = tasks_provided if isinstance(tasks_provided, list) else [tasks_provided]
+            run([self.tasks[task] for task in self.tasks if task in tasks_provided], **kwargs)
 
     def outputLoad(self, task):
         """
@@ -324,12 +327,17 @@ class Workflow:
             Correctly assigns params to their respective tasks
         """
         self.task_params = {}
+
         for task in self.tasks:
             params = {}
             for param in self.params:
                 if param in self.tasks[task].__dict__:
                     params[param] = self.params[param]
             self.task_params[task] = params
+
+        #instantiates all objects with their respective params    
+        for task in self.tasks:
+            self.tasks[task] = self.tasks[task](**self.task_params[task])
 
 
 def flow(params=None):
@@ -339,13 +347,23 @@ def flow(params=None):
     """
 
     #Inspect magic to get variables in caller scope
-    import inspect
+    import inspect, types
     frame = inspect.currentframe()
     frame = frame.f_back
     variables = frame.f_locals
 
     tasks = {}
     for variable in variables:
+
+        # if variable is a module, 
+        # check inside the module to see if any of them has task classes defined.
+        # And we dont want to check inside luigi module
+        if isinstance(variables[variable], types.ModuleType) and not variables[variable].__name__ == "luigi":
+            module_variables = variables[variable].__dict__
+            for module_variable in module_variables:
+                if isinstance(module_variables[module_variable], luigi.task_register.Register):
+                    tasks[module_variable] = module_variables[module_variable]
+            
         #Add to tasks dictionary if variable is a luigi task.
         if isinstance(variables[variable], luigi.task_register.Register):
             tasks[variable] = variables[variable]
