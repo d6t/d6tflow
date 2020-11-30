@@ -165,7 +165,7 @@ It may not catch all errors so if you run into any problems or have any question
 ## How To Contribute
 
 Thank you for considering to contribute to the project. First, fork the code repository and then pick an issue that is open. Afterwards follow these steps
-* Create a branch called \[issue_no\]_yyyymmdd_\[feature\]
+* Create a branch called \[issue_no\]\_yyyymmdd\_\[feature\]
 * Implement the feature
 * Write unit tests for the desired behaviour
 * Create a pull request to merge branch with master
