@@ -22,6 +22,7 @@ dfc2['a']=dfc2['a']*2
 dfc4 = df.copy()
 dfc4['a']=dfc4['a']*2*2
 
+
 @pytest.fixture
 def cleanup(scope="module"):
     with fuckit:
@@ -213,6 +214,23 @@ def test_formats(cleanup):
         helper(ddf, TaskPqDask, 'pd')
         t1.invalidate(confirm=False)
 
+def test_requires():
+    class Task1(d6tflow.tasks.TaskCache):
+        def run(self):
+            df = pd.DataFrame({'a': range(3)})
+            self.save(df)  # quickly save dataframe
+    class Task2(Task1):
+        pass
+    # define another task that depends on data from task1 and task2
+    @d6tflow.requires({'a': Task1, 'b': Task2})
+    class Task3(d6tflow.tasks.TaskCache):
+        def run(self):
+            df1 = self.input()['a'].load()  # quickly load input data
+            df2 = self.input()['b'].load()  # quickly load input data
+            
+            assert(df1.equals(pd.DataFrame({'a': range(3)})))
+    task3 = Task3()
+    d6tflow.run(task3)
 
 
 def test_params(cleanup):
