@@ -80,7 +80,6 @@ class TaskData(luigi.Task):
         """
         Similar to luigi task output
         """
-
         # output dir, check if using d6tpipe
         if hasattr(self, 'pipename'):
             import d6tflow.pipes
@@ -109,16 +108,23 @@ class TaskData(luigi.Task):
             input = self.input()[task]
         else:
             input = self.input()
+        
+        return self._load_all_input(input, keys=keys, task=task, cached=cached)
+
+
+    def _load_all_input(self, input, keys=None, task=None, cached=False):
         if isinstance(input, tuple):
             data = [o.load() for o in input]
+        elif isinstance(input, list): #The function becomes recursive if the data is a list
+            data = [self._load_all_input(o) for o in input]
         elif isinstance(input, dict):
             keys = input.keys() if keys is None else keys
             data = {k: v.load(cached) for k, v in input.items() if k in keys}
-            data = list(data.values())
+            #data = list(data.values())
         else:
             data = input.load()
         return data
-
+    
     def outputLoad(self, keys=None, as_dict=False, cached=False):
         """
         Load all or several outputs from task
@@ -149,6 +155,7 @@ class TaskData(luigi.Task):
             data (dict): data to save. keys are the self.persist keys and values is data
 
         """
+        
         if self.persist==['data']: # 1 data shortcut
             self.output().save(data, **kwargs)
         else:
