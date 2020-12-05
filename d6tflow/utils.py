@@ -46,3 +46,7 @@ def traverse(t, path=None):
         if not node in path:
             path = traverse(node, path)
     return path
+
+def to_parquet(df, path, **kwargs):
+    opts = {**{'compression': 'gzip', 'engine': 'pyarrow'}, **kwargs}
+    df.to_parquet(path, **opts)
