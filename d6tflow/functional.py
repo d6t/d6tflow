@@ -12,7 +12,6 @@ class Flow:
         self.funcs_to_run = []
         self.params = {}
         self.steps = {}
-        self.persist = ["data"]
         self.object_count = 0
 
         def common_decorator(func):
@@ -55,7 +54,6 @@ class Flow:
         self.steps[step_name] = type(step_name, (task_type,), {})
         self.current_step = step_name
         self.object_count += 1
-        self.persist = ["data"]
         return self.common_decorator
 
     def requires(self, *args, **kwargs):
@@ -103,7 +101,6 @@ class Flow:
             -------
             @flow.persists(['a1', 'a2'])
         """
-        self.persist = to_persist
         self.steps[self.current_step].persist = to_persist
         return self.common_decorator
 
