@@ -300,6 +300,51 @@ def test_multiple_deps_on_input_load():
     # Execute task including all its dependencies
     d6tflow.run(Task3(),forced_all_upstream=True,confirm=False)
 
+def test_functional_Flow():
+    import d6tflow
+    import pandas as pd
+
+    from d6tflow.functional import Flow
+    flow = Flow()
+
+
+    @flow.step(d6tflow.tasks.TaskCache)
+    @flow.persists(['a1', 'a2'])
+    def get_data0(task):
+        df = pd.DataFrame({'a':range(3)})
+        task.save({'a1':df,'a2':df})
+
+    @flow.step(d6tflow.tasks.TaskCache)
+    @flow.persists(['a1', 'a2'])
+    def get_data1(task):
+        df = pd.DataFrame({'a':range(3)})
+        task.save({'a1':df,'a2':df})
+
+    @flow.step(d6tflow.tasks.TaskCache)
+    @flow.requires(get_data0)
+    def get_data2(task):
+        df0 = task.inputLoad()
+        df = pd.DataFrame({'a':range(3)})
+        task.save({'b1':df,'b2':df0})
+
+    @flow.step(d6tflow.tasks.TaskCache)
+    @flow.requires({"a":get_data1, "b":get_data2})
+    @flow.persists(['aa'])
+    def use_data(task):
+        df0 = task.inputLoad()
+        df = pd.DataFrame({'a':range(3)})
+        assert df0["a"]["a1"].equals(df) and df0["a"]["a2"].equals(df)
+        assert df0["b"]["b1"].equals(df) and df0["b"]["b2"]["a1"].equals(df)
+        assert task.multiplier == 42
+        output = pd.DataFrame({'a':range(4)})
+        task.save({'aa':output})
+
+    flow.add_params({'multiplier': d6tflow.IntParameter(default=0)})
+    flow.run([use_data, get_data0], forced_all_upstream=True, confirm=False, params={'multiplier':42})
+    flow.run(use_data, forced_all_upstream=True, confirm=False, params={'multiplier':42})
+    dfo = pd.DataFrame({'a':range(4)})
+    assert flow.outputLoad(use_data)[0].equals(dfo)
+    
 def test_params(cleanup):
     class TaskParam(d6tflow.tasks.TaskCache):
         nrows = luigi.IntParameter(default=10)
@@ -319,6 +364,7 @@ def test_external(cleanup):
     # t2=Task2()
     # assert len(t2.requires())==0
     # assert t2.output()['df2'].load().equals(dfc2)
+
 
 
 #********************************************
