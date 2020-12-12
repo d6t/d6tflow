@@ -119,7 +119,15 @@ class TaskData(luigi.Task):
             data = [self._load_all_input(o) for o in input]
         elif isinstance(input, dict):
             keys = input.keys() if keys is None else keys
-            data = {k: v.load(cached) for k, v in input.items() if k in keys}
+            #Handle multiple nested dicts. Becomes recursive
+            data = {}
+            for k, v in input.items():
+                if k in keys:
+                    if type(v) == dict:
+                        data[k] = self._load_all_input(v)
+                    else:
+                        data[k] = v.load(cached)
+            # data = {k: v.load(cached) for k, v in input.items() if k in keys}
             #data = list(data.values())
         else:
             data = input.load()
