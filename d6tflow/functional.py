@@ -2,6 +2,7 @@ import d6tflow.tasks as tasks
 import d6tflow
 from functools import wraps
 
+
 class Flow:
     """
         Functional Flow class that acts as a manager of all flow steps.
@@ -12,6 +13,7 @@ class Flow:
         self.funcs_to_run = []
         self.params = {}
         self.steps = {}
+        self.instatiated_tasks = {}
         self.object_count = 0
 
         def common_decorator(func):
@@ -127,12 +129,14 @@ class Flow:
             funcs_to_run, list) else [funcs_to_run]
 
         params = params if params else {}
-        for func_to_run in funcs_to_run:
-            self.steps[func_to_run.__name__] = self.steps[func_to_run.__name__](
-                **params)
+        instatiated_tasks = {
+            func_to_run.__name__: self.steps[func_to_run.__name__](**params)
+            for func_to_run in funcs_to_run
+        }
+        self.instatiated_tasks.update(instatiated_tasks)
 
         d6tflow.run(
-            [self.steps[func_to_run.__name__] for func_to_run in funcs_to_run],
+            list(self.instatiated_tasks.values()),
             *args,
             **kwargs)
 
@@ -167,4 +171,4 @@ class Flow:
         """
         name = func_to_run.__name__
         assert name in self.steps, "The function either does not qualify as a task or has not been run yet.\n Did you forget to decorate your function with one of the classes in d6tflow.tasks?"
-        return self.steps[name].outputLoad(*args, **kwargs)
+        return self.instatiated_tasks[name].outputLoad(*args, **kwargs)
