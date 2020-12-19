@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='d6tflow',
-    version='0.2.1',
+    version='0.2.2',
     packages=['d6tflow','d6tflow.targets','d6tflow.tasks'],
     url='https://github.com/d6t/d6tflow',
     license='MIT',
@@ -21,3 +21,10 @@ include_package_data=True,
     keywords=['d6tflow', 'data workflow', 'data pipelines', 'luigi'],
     classifiers=[]
 )
+
+'''
+# publish
+# pip install setuptools wheel twine
+python setup.py sdist bdist_wheel
+twine upload dist/*  --skip-existing
+'''
