@@ -135,18 +135,11 @@ Input data from upstream dependency tasks can be easily loaded in ``run()``
     class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
 
         def run(self):
-<<<<<<< HEAD
             data = self.inputLoad()
             data1a = data['input1']['output1']
             # or
             data1a, data1b = self.inputLoad(task='input1')
             data2a, data2b = self.inputLoad(task='input2')
-=======
-            data1a = self.inputLoad(task='input1')['output1']
-            data1b = self.inputLoad(task='input1')['output2']
-            data2a = self.inputLoad(task='input2')['output1']
-            data2b = self.inputLoad(task='input2')['output2']
->>>>>>> 7e7cbeb0b731bb7579bca43cc5fd4df2392b13ec
             # or
             data1a = self.input()['input1']['output1'].load()
             data1b = self.input()['input1']['output2'].load()
