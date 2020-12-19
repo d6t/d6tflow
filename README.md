@@ -161,3 +161,13 @@ https://github.com/d6t/d6t-python
 We have put a lot of effort into making this library useful to you. To help us make this library even better, it collects ANONYMOUS error messages and usage statistics. See [d6tcollect](https://github.com/d6t/d6tcollect) for details including how to disable collection. Collection is asynchronous and doesn't impact your code in any way.
 
 It may not catch all errors so if you run into any problems or have any questions, please raise an issue on github.
+
+## How To Contribute
+
+Thank you for considering to contribute to the project. First, fork the code repository and then pick an issue that is open. Afterwards follow these steps
+* Create a branch called \[issue_no\]\_yyyymmdd\_\[feature\]
+* Implement the feature
+* Write unit tests for the desired behaviour
+* Create a pull request to merge branch with master
+
+A similar workflow applies to bug-fixes as well. In the case of a fix, just change the feature name with the bug-fix name. And make sure the code passes already written unit tests.
