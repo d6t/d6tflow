@@ -145,3 +145,20 @@ For another ML example see https://github.com/d6t/d6tflow/blob/master/docs/examp
 For more details see https://d6tflow.readthedocs.io/en/stable/api/d6tflow.util.html
 
 The project template also implements task parameter inheritance https://github.com/d6t/d6tflow-template
+
+Avoid repeating parameters when referring to tasks
+------------------------------------------------------------
+
+To run tasks and load their output for different parameters, you have to pass them to the task. Instead of hardcoding them each time, it is best to keep them in a dictionary and pass that to the task.
+
+.. code-block:: python
+
+    # avoid this
+    d6tflow.run(TaskTrain(do_preprocess=False, model='nnet'))
+    TaskTrain(do_preprocess=False, model='nnet').outputLoad()
+
+    # better
+    params = dict(do_preprocess=False, model='nnet')
+    d6tflow.run(TaskTrain(**params))
+    TaskTrain(**params).outputLoad()
+
