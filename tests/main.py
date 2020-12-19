@@ -289,7 +289,7 @@ def test_multiple_deps_on_input_load():
     @d6tflow.requires(Task1,Task2)
     class Task3(d6tflow.tasks.TaskCache):
         def run(self):
-            data = self.inputLoad() # ===> implement this
+            data = self.inputLoad()
             df1 = data[0]['a1']
             assert df1.equals(data[0]['a2'])
             df2 = data[1]

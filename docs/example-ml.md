@@ -18,8 +18,6 @@ Code is below, interactive example available on **[mybinder](http://tiny.cc/d6tf
 
 
 import d6tflow
-import luigi
-from luigi.util import inherits
 import sklearn, sklearn.datasets, sklearn.svm, sklearn.linear_model
 import pandas as pd
 
@@ -35,7 +33,7 @@ class TaskGetData(d6tflow.tasks.TaskPqPandas):  # save dataframe as parquet
 
 @d6tflow.requires(TaskGetData) # define dependency
 class TaskPreprocess(d6tflow.tasks.TaskPqPandas):
-    do_preprocess = luigi.BoolParameter(default=True) # parameter for preprocessing yes/no
+    do_preprocess = d6tflow.BoolParameter(default=True) # parameter for preprocessing yes/no
 
     def run(self):
         df_train = self.input().load() # quickly load required data
@@ -45,7 +43,7 @@ class TaskPreprocess(d6tflow.tasks.TaskPqPandas):
 
 @d6tflow.requires(TaskPreprocess) # automatically pass parameters upstream
 class TaskTrain(d6tflow.tasks.TaskPickle): # save output as pickle
-    model = luigi.Parameter(default='ols') # parameter for model selection
+    model = d6tflow.Parameter(default='ols') # parameter for model selection
 
     def run(self):
         df_train = self.input().load()

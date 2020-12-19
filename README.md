@@ -58,7 +58,7 @@ This is a minial example. Be sure to check out the ML workflow example below.
 
 ```python
 
-import d6tflow, luigi
+import d6tflow
 import pandas as pd
 
 # define 2 tasks that load raw data
@@ -72,13 +72,13 @@ class Task2(Task1):
     pass
 
 # define another task that depends on data from task1 and task2
-@d6tflow.requires(Task1,Task2)
+@d6tflow.requires({'upstream1':Task1,'upstream2':Task2})
 class Task3(d6tflow.tasks.TaskPqPandas):
-    multiplier = luigi.IntParameter(default=2)
+    multiplier = d6tflow.IntParameter(default=2)
     
     def run(self):
-        df1 = self.input()[0].load() # quickly load input data
-        df2 = self.input()[1].load() # quickly load input data
+        df1 = self.input()['upstream1'].load() # quickly load input data
+        df2 = self.input()['upstream2'].load() # quickly load input data
         df = df1.join(df2, lsuffix='1', rsuffix='2')
         df['b']=df['a1']*self.multiplier # use task parameter
         self.save(df)

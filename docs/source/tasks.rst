@@ -24,7 +24,26 @@ Additional details on how to write tasks is below. To run tasks see :doc:`Runnin
 Define Upstream Dependency Tasks
 ------------------------------------------------------------
 
-You define input dependencies by writing a ``requires()`` function which takes input tasks. You can have no, one or multiple input tasks. 
+You can define input dependencies by using a `@d6tflow.requires` decorator which takes input tasks. You can have no, one or multiple input tasks. This may be required when the decorator shortcut does not work.
+
+.. code-block:: python
+
+    # no dependency
+    class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
+        #[...]
+
+    # single dependency
+    @d6tflow.requires(TaskSingleOutput)
+    class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
+        #[...]
+
+    # multiple dependencies
+    @d6tflow.requires({'input1':TaskSingleOutput1, 'input2':TaskSingleOutput2})
+    class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
+        #[...]
+
+
+Alternatively you can define input dependencies by writing a ``requires()`` function which takes input tasks. You can have no, one or multiple input tasks. This may be required when the decorator shortcut does not work.
 
 .. code-block:: python
 
@@ -44,16 +63,7 @@ You define input dependencies by writing a ``requires()`` function which takes i
         def requires(self):
             return {'data1':TaskSingleOutput1(), 'data2':TaskSingleOutput2()}
 
-**Make sure you add `()` when you define a dependency, so `TaskGetData()` NOT `TaskGetData`.**
-
-Also see :doc:`using parameters <../advparam>` to automatically chain tasks together including parameters.
-
-.. code-block:: python
-
-    @d6tflow.inherits(TaskSingleOutput)
-    @d6tflow.clone_parent
-    class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
-        pass
+**When using the requires function, make sure you add `()` when you define a dependency, so `TaskGetData()` NOT `TaskGetData`.**
 
 
 Process Data
@@ -85,29 +95,23 @@ Input data from upstream dependency tasks can be easily loaded in ``run()``
             data = pd.read_csv(d6tflow.settings.dirpath/'file.csv') # data/file.csv
 
     # single dependency, single output
+    @d6tflow.requires(TaskSingleOutput)
     class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
-
-        def requires(self):
-            return TaskSingleOutput()
 
         def run(self):
             data = self.input().load()
 
     # single dependency, multiple outputs
+    @d6tflow.requires(TaskMultipleOutput)
     class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
-
-        def requires(self):
-            return TaskMultipleOutput()
 
         def run(self):
             data = self.input()['output1'].load()
             data = self.input()['output2'].load()
 
     # multiple dependencies, single output
+    @d6tflow.requires({'input1':TaskSingleOutput1, 'input2':TaskSingleOutput2})
     class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
-
-        def requires(self):
-            return {'input1':TaskSingleOutput1(), 'input2':TaskSingleOutput2()}
 
         def run(self):
             data1, data2 = self.inputLoad()
@@ -116,12 +120,13 @@ Input data from upstream dependency tasks can be easily loaded in ``run()``
             data2 = self.input()['input2'].load()
 
     # multiple dependencies, multiple outputs
+    @d6tflow.requires({'input1':TaskMultipleOutput1, 'input2':TaskMultipleOutput2})
     class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
 
-        def requires(self):
-            return {'input1':TaskMultipleOutput1(), 'input2':TaskMultipleOutput2()}
-
         def run(self):
+            data = self.inputLoad()
+            data1a = data['input1']['output1']
+            # or
             data1a, data1b = self.inputLoad(task='input1')
             data2a, data2b = self.inputLoad(task='input2')
             # or
@@ -218,7 +223,7 @@ Once a workflow is run and the task is complete, you can easily load its output 
     df = TaskSingleOutput().output().load()
     data1 = TaskMultipleOutput().output()['data1'].load()
     data2 = TaskMultipleOutput().output()['data2'].load()
-    data1, data2 = TaskMultipleOutput().loadOutputs()
+    data1, data2 = TaskMultipleOutput().outputLoad()
 
 **Before you load output data you need to run the workflow**. See :doc:`run the workflow <../run>`. If a task has not been run, it will show
 
@@ -236,6 +241,9 @@ If you are :doc:`using parameters <../advparam>` this is how you load outputs. M
 .. code-block:: python
 
     df = TaskSingleOutput(param=value).output().load()
+    # or
+    params = dict(param=value)
+    df = TaskSingleOutput(**params).output().load()
 
 
 Putting it all together

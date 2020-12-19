@@ -110,7 +110,7 @@ def run(tasks, forced=None, forced_all=False, forced_all_upstream=False, confirm
 
     execution_summary = execution_summary if execution_summary is not None else d6tflow.settings.execution_summary
     opts = {**{'workers':workers, 'local_scheduler':True, 'log_level':d6tflow.settings.log_level},**kwargs}
-    if execution_summary:
+    if execution_summary and luigi.__version__>='3.0.0':
         opts['detailed_summary']=True
     result = luigi.build(tasks, **opts)
     if abort and not result.scheduling_succeeded:
