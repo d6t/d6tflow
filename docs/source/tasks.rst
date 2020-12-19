@@ -43,7 +43,7 @@ You can define input dependencies by using a `@d6tflow.requires` decorator which
         #[...]
 
 
-Alternatively you can define input dependencies by writing a ``requires()`` function which takes input tasks. You can have no, one or multiple input tasks. This may be required when the decorator shortcut does not work.
+Alternatively you can define input dependencies by writing a ``requires()`` function which takes input tasks. You can have no, one or multiple input tasks. This may be required for advanced cases when the decorator shortcut does not work.
 
 .. code-block:: python
 
@@ -56,6 +56,11 @@ Alternatively you can define input dependencies by writing a ``requires()`` func
 
         def requires(self):
             return TaskSingleOutput()
+
+    # single dependency with requires decorator
+    @d6tflow.requires(TaskSingleOutput)
+    class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
+        # leave blank
 
     # multiple dependencies
     class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
@@ -99,6 +104,8 @@ Input data from upstream dependency tasks can be easily loaded in ``run()``
     class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
 
         def run(self):
+            data = self.inputLoad()
+            #or
             data = self.input().load()
 
     # single dependency, multiple outputs
@@ -106,6 +113,9 @@ Input data from upstream dependency tasks can be easily loaded in ``run()``
     class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
 
         def run(self):
+            data = self.inputLoad()['output1']
+            data = self.inputLoad()['output2']
+            #or
             data = self.input()['output1'].load()
             data = self.input()['output2'].load()
 
@@ -114,7 +124,8 @@ Input data from upstream dependency tasks can be easily loaded in ``run()``
     class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
 
         def run(self):
-            data1, data2 = self.inputLoad()
+            data1 = self.inputLoad()['input1']
+            data2 = self.inputLoad()['input2']
             # or
             data1 = self.input()['input1'].load()
             data2 = self.input()['input2'].load()
@@ -124,11 +135,18 @@ Input data from upstream dependency tasks can be easily loaded in ``run()``
     class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
 
         def run(self):
+<<<<<<< HEAD
             data = self.inputLoad()
             data1a = data['input1']['output1']
             # or
             data1a, data1b = self.inputLoad(task='input1')
             data2a, data2b = self.inputLoad(task='input2')
+=======
+            data1a = self.inputLoad(task='input1')['output1']
+            data1b = self.inputLoad(task='input1')['output2']
+            data2a = self.inputLoad(task='input2')['output1']
+            data2b = self.inputLoad(task='input2')['output2']
+>>>>>>> 7e7cbeb0b731bb7579bca43cc5fd4df2392b13ec
             # or
             data1a = self.input()['input1']['output1'].load()
             data1b = self.input()['input1']['output2'].load()
