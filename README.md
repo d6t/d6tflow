@@ -52,7 +52,7 @@ You can also clone the repo and run `pip install .`
 
 To install latest DEV `pip install git+git://github.com/d6t/d6tflow.git` or upgrade `pip install git+git://github.com/d6t/d6tflow.git -U --no-deps`
 
-## Example: Introduction
+## Example 1: Introduction
 
 This is a minial example. Be sure to check out the ML workflow example below.
 
@@ -111,14 +111,16 @@ d6tflow.preview(Task3(multiplier=3))
 
 ```
 
-
-## Example: Comparing model performance in ML Workflow
+## Example 2: Comparing model performance in ML Workflow
 
 Below is sample output for a machine learning workflow. The goal is to efficiently compare the performance of two ML models.  
 
 **[See the full example here](http://tiny.cc/d6tflow-start-example)**  
 **[Interactive mybinder jupyter notebook example](http://tiny.cc/d6tflow-start-interactive)**
 
+## Example 3: Turn functions into workflows
+
+Alternatively, chain together functions into a workflow and get the power of d6tflow with only little change in code. **[Jupyter notebook example](https://github.com/d6t/d6tflow/blob/master/docs/example-functional.ipynb)**
 
 ## Documentation
 
