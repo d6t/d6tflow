@@ -13,7 +13,7 @@ class Flow:
         self.funcs_to_run = []
         self.params = {}
         self.steps = {}
-        self.instatiated_tasks = {}
+        self.instantiated_tasks = {}
         self.object_count = 0
 
         def common_decorator(func):
@@ -25,6 +25,7 @@ class Flow:
             # Also we are changing the name of the task class to the function name.
             if not '__wrapped__' in func.__dict__:
                 self.steps[func.__name__] = self.steps[self.current_step]
+                del self.steps[self.current_step]
                 self.steps[func.__name__].__name__ = func.__name__
                 setattr(self.steps[func.__name__], 'run', func)
 
@@ -106,6 +107,10 @@ class Flow:
         self.steps[self.current_step].persist = to_persist
         return self.common_decorator
 
+    def preview(self, func_to_preview, params=None):
+        self._instantiate([func_to_preview], params=params)
+        return d6tflow.preview(self.instantiated_tasks[func_to_preview.__name__])
+
     def run(self, funcs_to_run, params: dict = None, *args, **kwargs):
         """
             Runs flow steps locally. See luigi.build for additional details
@@ -128,17 +133,20 @@ class Flow:
         funcs_to_run = funcs_to_run if isinstance(
             funcs_to_run, list) else [funcs_to_run]
 
+        self._instantiate(funcs_to_run, params=params)
+
+        d6tflow.run(
+            list(self.instantiated_tasks.values()),
+            *args,
+            **kwargs)
+
+    def _instantiate(self, funcs_to_run: list, params=None):
         params = params if params else {}
-        instatiated_tasks = {
+        instantiated_tasks = {
             func_to_run.__name__: self.steps[func_to_run.__name__](**params)
             for func_to_run in funcs_to_run
         }
-        self.instatiated_tasks.update(instatiated_tasks)
-
-        d6tflow.run(
-            list(self.instatiated_tasks.values()),
-            *args,
-            **kwargs)
+        self.instantiated_tasks.update(instantiated_tasks)
 
     def add_params(self, params):
         """
@@ -157,7 +165,7 @@ class Flow:
             for param in params:
                 setattr(self.steps[step], param, params[param])
 
-    def outputLoad(self, func_to_run, *args, **kwargs):
+    def outputLoad(self, func_to_run, params: dict = None, *args, **kwargs):
         """
             Loads all or several outputs from flow step.
 
@@ -171,4 +179,7 @@ class Flow:
         """
         name = func_to_run.__name__
         assert name in self.steps, "The function either does not qualify as a task or has not been run yet.\n Did you forget to decorate your function with one of the classes in d6tflow.tasks?"
-        return self.instatiated_tasks[name].outputLoad(*args, **kwargs)
+
+        self._instantiate([func_to_run], params=params)
+
+        return self.instantiated_tasks[name].outputLoad(*args, **kwargs)
