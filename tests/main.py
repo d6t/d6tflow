@@ -343,7 +343,7 @@ def test_functional_Flow():
     flow.run([use_data, get_data0], forced_all_upstream=True, confirm=False, params={'multiplier':42})
     flow.run(use_data, forced_all_upstream=True, confirm=False, params={'multiplier':42})
     dfo = pd.DataFrame({'a':range(4)})
-    assert flow.outputLoad(use_data)[0].equals(dfo)
+    assert flow.outputLoad(use_data, params={'multiplier':42})[0].equals(dfo)
     
 def test_params(cleanup):
     class TaskParam(d6tflow.tasks.TaskCache):
