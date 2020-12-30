@@ -105,7 +105,7 @@ def test_tasks(cleanup):
 
     t1.run()
     assert t1.complete()
-    assert t1.invalidate(confirm=False)
+    assert t1.reset(confirm=False)
     assert not t1.complete()
 
     assert d6tflow.run([Task2()])
@@ -159,7 +159,7 @@ def test_tasks(cleanup):
     TaskMultiInput2().run()
 
     # check downstream incomplete
-    t1.invalidate(confirm=False)
+    t1.reset(confirm=False)
     assert not t2.complete()
     d6tflow.settings.check_dependencies=False
     assert t2.complete()
@@ -212,7 +212,7 @@ def test_formats(cleanup):
         ddf = dd.read_parquet(t1.output().path)
         from d6tflow.tasks.dask import TaskPqDask
         helper(ddf, TaskPqDask, 'pd')
-        t1.invalidate(confirm=False)
+        t1.reset(confirm=False)
 
 def test_requires():
     class Task1(d6tflow.tasks.TaskCache):
@@ -327,10 +327,10 @@ def test_external(cleanup):
 def test_execute(cleanup):
     # execute
     t1=Task1(); t2=Task2();t3=Task3();
-    [t.invalidate(confirm=False) for t in [t1,t2,t3]]
+    [t.reset(confirm=False) for t in [t1,t2,t3]]
     d6tflow.run(t3)
     assert all(t.complete() for t in [t1,t2,t3])
-    t1.invalidate(confirm=False); t2.invalidate(confirm=False);
+    t1.reset(confirm=False); t2.reset(confirm=False);
     assert not t3.complete() # cascade upstream
     d6tflow.settings.check_dependencies=False
     assert t3.complete() # no cascade upstream
