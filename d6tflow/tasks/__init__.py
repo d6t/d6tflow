@@ -269,7 +269,8 @@ class TaskAggregator(luigi.Task):
                 yield Task2()
 
     """
-
+    def reset(self, confirm=True):
+        return self.invalidate(confirm=confirm)
     def invalidate(self, confirm=True):
         [t.invalidate(confirm) for t in self.run()]
 
