@@ -90,6 +90,7 @@ class ModelEval(d6tflow.tasks.TaskPqPandas):
 params = dict()
 d6tflow.run(ModelEval(**params))#,forced_all=True,confirm=False, forced_all_upstream=True)
 
+# model comparison
 df_train = ModelEval(**params).outputLoad()
 print('insample errors')
 print('naive mean',mean_squared_error(df_train[cfg_col_Y],df_train['target_naive1']))
@@ -102,3 +103,19 @@ mod_lgbm = ModelTrainLGBM(**params)
 df_trainX, df_trainY = DataTrain(**params).outputLoad()
 print('ols',-cross_validate(model_ols, df_trainX, df_trainY, return_train_score=False, scoring=('r2', 'neg_mean_squared_error'), cv=10)['test_neg_mean_squared_error'].mean())
 print('gbm',-cross_validate(mod_lgbm, df_trainX, df_trainY, return_train_score=False, scoring=('r2', 'neg_mean_squared_error'), cv=10)['test_neg_mean_squared_error'].mean())
+
+# single model experiments
+experiments = {'max_depth':1,'max_depth':2}
+for experiment in experiments:
+    print('cv errors')
+    mod_lgbm = ModelTrainLGBM(**params)
+    df_trainX, df_trainY = DataTrain(**params).outputLoad()
+    print('gbm',-cross_validate(mod_lgbm, df_trainX, df_trainY, return_train_score=False, scoring=('r2', 'neg_mean_squared_error'), cv=10)['test_neg_mean_squared_error'].mean())
+
+# multi model experiments
+experiments = {} # ?????? add both lgbm and ols parameters?
+for experiment in experiments:
+    print('cv errors')
+    mod_lgbm = ModelTrainLGBM(**params)
+    df_trainX, df_trainY = DataTrain(**params).outputLoad()
+    print('gbm',-cross_validate(mod_lgbm, df_trainX, df_trainY, return_train_score=False, scoring=('r2', 'neg_mean_squared_error'), cv=10)['test_neg_mean_squared_error'].mean())
