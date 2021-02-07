@@ -93,7 +93,7 @@ class TaskData(luigi.Task):
             output = output['data']
         return output
 
-    def inputLoad(self, keys=None, task=None, cached=False):
+    def inputLoad(self, keys=None, task=None, cached=False, as_dict=False):
         """
         Load all or several outputs from task
 
@@ -101,28 +101,39 @@ class TaskData(luigi.Task):
             keys (list): list of data to load
             task (str): if requires multiple tasks load that task 'input1' for eg `def requires: {'input1':Task1(), 'input2':Task2()}`
             cached (bool): cache data in memory
-
+            as_dict (bool): if the inputs were saved as a dictionary. use this to return them as dictionary. 
         Returns: list or dict of all task output
         """
+
         if isinstance(self.requires(), dict) and task is not None:
             input = self.input()[task]
         else:
             input = self.input()
+
+        requires = self.requires()
+        type_of_requires = type(requires)
+        if type_of_requires in [list, tuple]:
+            raise TypeError("Please use a dictionary if you are passing multiple tasks to d6tflow.requires() \n \
+                Example: @d6tflow.requires({'task1': Task1, 'task2': Task2})")
         
-        return self._load_all_input(input, keys=keys, task=task, cached=cached)
-
-
-    def _load_all_input(self, input, keys=None, task=None, cached=False):
-        if isinstance(input, tuple):
-            data = [o.load() for o in input]
-        elif isinstance(input, list): #The function becomes recursive if the data is a list
-            data = [self._load_all_input(o) for o in input]
-        elif isinstance(input, dict):
+        if isinstance(input, dict):
             keys = input.keys() if keys is None else keys
-            data = {k: v.load(cached) for k, v in input.items() if k in keys}
-            #data = list(data.values())
+            data = {}
+            for k, v in input.items():
+                if k in keys:
+                    if type(v) == dict:
+                        if as_dict:
+                            data[k] = {k:v.load(cached) for k,v in v.items()}
+                        else:
+                            data[k] = [v.load(cached) for k,v in v.items()]
+                    else:
+                        data[k] = v.load(cached)
+            # Convert to list if dependency is single and as_dict is False
+            if (type_of_requires != dict or task is not None) and not as_dict:
+                data = list(data.values())
         else:
             data = input.load()
+            
         return data
     
     def outputLoad(self, keys=None, as_dict=False, cached=False):
