@@ -70,14 +70,14 @@ class ModelTrainLGBM(d6tflow.tasks.TaskPickle):
 class ModelEval(d6tflow.tasks.TaskPqPandas):
 
     def run(self):
-        data = self.inputLoad()
+        data = self.inputLoad(as_dict=True)
         df_train = data['data']
         df_trainX = data['data-train']['x']
 
         if cfg_run_tests:
             assert df_train.equals(self.input()['data'].load())
             assert df_train.equals(self.inputLoad(task='data'))
-            assert df_trainX.equals(self.input()['data-drain']['x'].load())
+            assert df_trainX.equals(self.input()['data-train']['x'].load())
             assert df_trainX.equals(self.inputLoad(task='data-train')[0])
             assert df_trainX.equals(self.inputLoad(task='data-train', as_dict=True)['x'])
 
@@ -98,8 +98,8 @@ print('ols',mean_squared_error(df_train[cfg_col_Y],df_train['target_ols']))
 print('gbm',mean_squared_error(df_train[cfg_col_Y],df_train['target_lgbm']))
 
 print('cv errors')
-model_ols = ModelTrainOLS(**params)
-mod_lgbm = ModelTrainLGBM(**params)
+model_ols = ModelTrainOLS(**params).outputLoad()
+mod_lgbm = ModelTrainLGBM(**params).outputLoad()
 df_trainX, df_trainY = DataTrain(**params).outputLoad()
 print('ols',-cross_validate(model_ols, df_trainX, df_trainY, return_train_score=False, scoring=('r2', 'neg_mean_squared_error'), cv=10)['test_neg_mean_squared_error'].mean())
 print('gbm',-cross_validate(mod_lgbm, df_trainX, df_trainY, return_train_score=False, scoring=('r2', 'neg_mean_squared_error'), cv=10)['test_neg_mean_squared_error'].mean())
@@ -108,7 +108,7 @@ print('gbm',-cross_validate(mod_lgbm, df_trainX, df_trainY, return_train_score=F
 experiments = {'max_depth':1,'max_depth':2}
 for experiment in experiments:
     print('cv errors')
-    mod_lgbm = ModelTrainLGBM(**params)
+    mod_lgbm = ModelTrainLGBM(**params).outputLoad()
     df_trainX, df_trainY = DataTrain(**params).outputLoad()
     print('gbm',-cross_validate(mod_lgbm, df_trainX, df_trainY, return_train_score=False, scoring=('r2', 'neg_mean_squared_error'), cv=10)['test_neg_mean_squared_error'].mean())
 
@@ -116,6 +116,6 @@ for experiment in experiments:
 experiments = {} # ?????? add both lgbm and ols parameters?
 for experiment in experiments:
     print('cv errors')
-    mod_lgbm = ModelTrainLGBM(**params)
+    mod_lgbm = ModelTrainLGBM(**params).outputLoad()
     df_trainX, df_trainY = DataTrain(**params).outputLoad()
     print('gbm',-cross_validate(mod_lgbm, df_trainX, df_trainY, return_train_score=False, scoring=('r2', 'neg_mean_squared_error'), cv=10)['test_neg_mean_squared_error'].mean())
