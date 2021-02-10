@@ -1,5 +1,5 @@
 from d6tflow.tasks import TaskData
-from d6tflow.targets import PyTorchModel
+from d6tflow.targets.pt import PyTorchModel
 
 class PyTorch(TaskData):
     """
