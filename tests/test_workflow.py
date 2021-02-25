@@ -3,6 +3,7 @@ import pytest
 import d6tflow
 import sklearn, sklearn.datasets, sklearn.svm, sklearn.linear_model
 import pandas as pd
+import numpy as np
 
 # define workflow
 class TaskGetData(d6tflow.tasks.TaskPqPandas):  # save dataframe as parquet
@@ -42,14 +43,55 @@ class TaskTrain(d6tflow.tasks.TaskPickle): # save output as pickle
 
 class TestWorkflow:
 
-    def test_single_flow(self):
+
+    def test_single_flow_preview(self):
+        try:
+            flow = d6tflow.flow({'do_preprocess': False})
+
+            import io
+            from contextlib import redirect_stdout
+
+            with io.StringIO() as buf, redirect_stdout(buf):
+                flow.preview(TaskTrain)
+                output = buf.getvalue()
+                assert output.count('PENDING')==0
+                assert output.count('COMPLETE')==3
+                assert output.count("'do_preprocess': 'False'")==1
+        except Exception as e:
+            pytest.fail("Unexpected error" + e.__str__())
+
+
+    def test_single_flow_parameters_passes_properly(self):
+        try:
+            flow1 = d6tflow.flow({'do_preprocess': False})
+            flow2 = d6tflow.flow({'do_preprocess': True})
+
+            import io
+            from contextlib import redirect_stdout
+
+            with io.StringIO() as buf, redirect_stdout(buf):
+                flow1.preview(TaskTrain)
+                output = buf.getvalue()
+                assert output.count("'do_preprocess': 'False'")==1
+
+                flow2.preview(TaskTrain)
+                output2 = buf.getvalue()
+                assert output2.count("'do_preprocess': 'True'")==1
+        except Exception as e:
+            pytest.fail("Unexpected error" + e.__str__())
+
+
+    def test_task_runs_properly_and_gives_outputload(self):
         try:
             flow = d6tflow.flow({'do_preprocess': False})
             flow.preview(TaskTrain)
             flow.run(TaskTrain)
-            flow.outputLoad(TaskTrain)
-            flow.outputLoad(TaskPreprocess)
-            flow.reset(TaskPreprocess, confirm=False)
+            out1 = flow.outputLoad(TaskTrain)
+            out2 = flow.outputLoad(TaskPreprocess)
+            ds = sklearn.datasets.load_breast_cancer()
+            df_train = pd.DataFrame(ds.data, columns=ds.feature_names)
+            assert type(out1).__name__ == "LogisticRegression"
+            assert np.all(out2.drop(['y'], axis=1) == df_train)
         except Exception as e:
             pytest.fail("Unexpected error" + e.__str__())
 
@@ -60,16 +102,17 @@ class TestWorkflow:
             flow.run()
 
 
-    def test_default_set_no_error(self):
+    def test_default_task(self):
         try:
             flow = d6tflow.flow({'do_preprocess': False})
             flow.set_default(TaskTrain)
-            flow.run()
+            out_class = flow.get_task()
+            type(out_class).__name__ == "TaskTrain"
         except Exception as e:
             pytest.fail("Unexpected error " + e.__str__())
 
 
-    def test_tasks_with_dependencies(self):
+    def test_tasks_with_dependencies_outputloadall(self):
         try:
             flow = d6tflow.flow({'do_preprocess': False}, default=TaskTrain)
             flow.preview()
@@ -83,20 +126,90 @@ class TestWorkflow:
             assert 'TaskTrain' in data.keys()
             assert 'TaskPreprocess' in data.keys()
             assert 'TaskGetData' in data.keys()
+            assert type(data['TaskTrain']).__name__ == "LogisticRegression"
+            ds = sklearn.datasets.load_breast_cancer()
+            df_train = pd.DataFrame(ds.data, columns=ds.feature_names)
+            assert np.all(data['TaskPreprocess'].drop(['y'], axis=1) == df_train)
+            assert np.all(data['TaskGetData'].drop(['y'], axis=1) == df_train)
         except Exception as e:
             pytest.fail("Unexpected error" + e.__str__())
 
 
-    def test_multi_exp(self):
+class TestWorkflowMulti:
+
+    def test_preview_single_flow(self):
+        try:
+            flow2 = d6tflow.flowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
+                                      default=TaskTrain)
+
+            import io
+            from contextlib import redirect_stdout
+
+            with io.StringIO() as buf, redirect_stdout(buf):
+                flow2.preview(TaskTrain, flow = 'experiment1')
+                output = buf.getvalue()
+                assert output.count('PENDING')==0
+                assert output.count('COMPLETE')==3
+                assert output.count("'do_preprocess': 'False'")==1
+        except Exception as e:
+            pytest.fail("Unexpected error" + e.__str__())
+
+
+    def test_preview_all_flow(self):
+        try:
+            flow2 = d6tflow.flowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
+                                      default=TaskTrain)
+
+            import io
+            from contextlib import redirect_stdout
+
+            with io.StringIO() as buf, redirect_stdout(buf):
+                flow2.preview(TaskTrain)
+                output = buf.getvalue()
+                assert output.count('PENDING')==0
+                assert output.count('COMPLETE')==6
+                assert output.count("'do_preprocess': 'False'")==1
+                assert output.count("'do_preprocess': 'True'")==1
+        except Exception as e:
+            pytest.fail("Unexpected error" + e.__str__())
+
+
+    def test_no_default_expect_error(self):
+        with pytest.raises(RuntimeError):
+            flow2 = d6tflow.flowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}})
+            flow2.run()
+
+
+    def test_default_task(self):
+        try:
+            flow2 = d6tflow.flowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}})
+            flow2.set_default(TaskTrain)
+            out_class = flow2.get_task()
+            type(out_class).__name__ == "TaskTrain"
+        except Exception as e:
+            pytest.fail("Unexpected error " + e.__str__())
+
+
+    def test_multi_exp_single_flows_single_outputload(self):
+        try:
+            flow2 = d6tflow.flowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
+                                      default=TaskTrain)
+            flow2.run(flow = "experiment1")
+
+            out = flow2.outputLoad(TaskTrain)
+            type(out).__name__ == "LogisticRegression"
+        except Exception as e:
+            pytest.fail("Unexpected error" + e.__str__())
+
+
+    def test_multi_exp_all_flows_outputloadall(self):
         try:
             flow2 = d6tflow.flowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
                                       default=TaskTrain)
             flow2.run()
-            flow2.run(flow='experiment1', confirm=False)
-            data = flow2.outputLoad(TaskTrain)
 
             data = flow2.outputLoadAll()
-            data['experiment1']['TaskTrain']
-            data['experiment2']['TaskTrain']
+            type(data['experiment1']['TaskTrain']).__name__ == "LogisticRegression"
+            type(data['experiment2']['TaskTrain']).__name__ == "LogisticRegression"
         except Exception as e:
             pytest.fail("Unexpected error" + e.__str__())

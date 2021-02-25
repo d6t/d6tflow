@@ -305,11 +305,7 @@ class Workflow(object):
 
 
     def preview(self, tasks=None, indent='', last=True, show_params=True, clip_params=False):
-        if tasks is None:
-            if self.default_task is None:
-                raise RuntimeError('no default tasks set')
-            else:
-                tasks = self.default_task
+        tasks = self.get_task(tasks)
         if not isinstance(tasks, (list,)):
             tasks = [tasks]
         tasks = [x(**self.params) for x in tasks]
@@ -317,11 +313,7 @@ class Workflow(object):
 
 
     def run(self,tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, **kwargs):
-        if tasks is None:
-            if self.default_task is None:
-                raise RuntimeError('no default tasks set')
-            else:
-                tasks = self.default_task
+        tasks = self.get_task(tasks)
         if not isinstance(tasks, (list,)):
             tasks = [tasks]
         tasks = [x(**self.params) for x in tasks]
@@ -329,21 +321,13 @@ class Workflow(object):
 
 
     def outputLoad(self, task_cls=None, keys=None, as_dict=False, cached=False):
-        if task_cls is None:
-            if self.default_task is None:
-                raise RuntimeError('no default tasks set')
-            else:
-                task_cls = self.default_task
+        task_cls = self.get_task(task_cls)
 
         return task_cls(**self.params).outputLoad(keys=keys, as_dict=as_dict, cached=cached)
 
 
     def outputLoadAll(self, task_cls=None, keys=None, as_dict=False, cached=False):
-        if task_cls is None:
-            if self.default_task is None:
-                raise RuntimeError('no default tasks set')
-            else:
-                task_cls = self.default_task
+        task_cls = self.get_task(task_cls)
         data_dict = {}
         tasks = taskflow_upstream(task_cls(**self.params))
         for task in tasks:
@@ -359,6 +343,15 @@ class Workflow(object):
         self.default_task = task
 
 
+    def get_task(self, task_cls = None):
+        if task_cls is None:
+            if self.default_task is None:
+                raise RuntimeError('no default tasks set')
+            else:
+                task_cls = self.default_task
+        return task_cls
+
+
 class WorkflowMulti(object):
 
     def __init__(self, exp_params, default = None):
@@ -369,11 +362,7 @@ class WorkflowMulti(object):
 
 
     def run(self,tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, flow = None, **kwargs):
-        if tasks is None:
-            if self.default_task is None:
-                raise RuntimeError('no default tasks set')
-            else:
-                tasks = self.default_task
+        tasks = self.get_task(tasks)
         if flow is not None:
             return self.workflow_objs[flow].run(tasks=tasks, forced=forced, forced_all=forced_all,
                                            forced_all_upstream=forced_all_upstream, confirm=confirm, workers=workers,
@@ -409,24 +398,32 @@ class WorkflowMulti(object):
         return task_cls().reset(confirm)
 
 
-    def preview(self, tasks = None, indent='', last=True, show_params=True, clip_params=False):
-        if tasks is None:
-            if self.default_task is None:
-                raise RuntimeError('no default tasks set')
-            else:
-                tasks = self.default_task
-
+    def preview(self, tasks = None, indent='', last=True, show_params=True, clip_params=False, flow = None):
+        tasks = self.get_task(tasks)
         if not isinstance(tasks, (list,)):
             tasks = [tasks]
-        tasks = [x(**self.params) for x in tasks]
-
-        return preview(tasks = tasks, indent = indent, last = last, show_params = show_params, clip_params = clip_params)
+        if flow is not None:
+            return self.workflow_objs[flow].preview(tasks)
+        data = {}
+        for exp_name in self.exp_params.keys():
+            data[exp_name] = self.workflow_objs[exp_name].preview(tasks = tasks, indent = indent, last = last, show_params=show_params, clip_params=clip_params)
+        return data
 
 
     def set_default(self, task):
         self.default_task = task
-        for workflow_obj in self.workflow_objs:
-            workflow_obj.set_default(task)
+        for exp_name in self.exp_params.keys():
+            self.workflow_objs[exp_name].set_default(task)
+
+
+    def get_task(self, task_cls = None):
+        if task_cls is None:
+            if self.default_task is None:
+                raise RuntimeError('no default tasks set')
+            else:
+                task_cls = self.default_task
+        return task_cls
+
 
 
 def flow(params=None, default = None):
@@ -438,5 +435,5 @@ def flow(params=None, default = None):
     return Workflow(params, default)
 
 
-def flowMulti(exp_params, default):
+def flowMulti(exp_params, default=None):
     return WorkflowMulti(exp_params, default)
