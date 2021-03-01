@@ -112,9 +112,6 @@ class TaskData(luigi.Task):
 
         requires = self.requires()
         type_of_requires = type(requires)
-        if type_of_requires in [list, tuple]:
-            raise TypeError("Please use a dictionary if you are passing multiple tasks to d6tflow.requires() \n \
-                Example: @d6tflow.requires({'task1': Task1, 'task2': Task2})")
         
         if isinstance(input, dict):
             keys = input.keys() if keys is None else keys
