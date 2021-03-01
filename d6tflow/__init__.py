@@ -291,7 +291,11 @@ def inherits(*tasks_to_inherit):
 
 def requires(*tasks_to_require):
     #Check the type; if a dictionary call our custom requires decorator
-    if isinstance(tasks_to_require[0], dict):
+    is_dict = isinstance(tasks_to_require[0], dict)
+    if len(tasks_to_require) > 1 and not is_dict:
+        raise TypeError("Please use a dictionary if you are passing multiple tasks to d6tflow.requires() \n \
+        Example: @d6tflow.requires({'task1': Task1, 'task2': Task2})")
+    if is_dict:
         return dict_requires(*tasks_to_require)
     return luigi_requires(*tasks_to_require)
 
