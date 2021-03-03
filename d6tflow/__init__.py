@@ -113,7 +113,11 @@ def run(tasks, forced=None, forced_all=False, forced_all_upstream=False, confirm
     if execution_summary and luigi.__version__>='3.0.0':
         opts['detailed_summary']=True
     result = luigi.build(tasks, **opts)
-    if abort and not result.scheduling_succeeded:
+    if isinstance(result, bool):
+        success = result
+    else:
+        success = result.scheduling_succeeded
+    if abort and not success:
         raise RuntimeError('Exception found running flow, check trace. For more details see https://d6tflow.readthedocs.io/en/latest/run.html#debugging-failures')
 
     if execution_summary:
