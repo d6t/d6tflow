@@ -46,7 +46,7 @@ def set_dir(dir=None):
     d6tflow.settings.isinit = True
     return dirpath
 
-@d6tcollect._collectClass
+@d6tcollect.collect
 def preview(tasks, indent='', last=True, show_params=True, clip_params=False):
     """
     Preview task flows
@@ -61,7 +61,7 @@ def preview(tasks, indent='', last=True, show_params=True, clip_params=False):
         print(d6tflow.utils.print_tree(t, indent=indent, last=last, show_params= show_params, clip_params=clip_params))
     print('\n ===== Luigi Execution Preview ===== \n')
 
-@d6tcollect._collectClass
+@d6tcollect.collect
 def run(tasks, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, **kwargs):
     """
     Run tasks locally. See luigi.build for additional details
