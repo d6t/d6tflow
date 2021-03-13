@@ -263,6 +263,7 @@ class TaskPqPandas(TaskData):
     target_class = d6tflow.targets.PqPandasTarget
     target_ext = 'parquet'
 
+
 class TaskAggregator(luigi.Task):
     """
     Task which yields other tasks
