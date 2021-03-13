@@ -5,6 +5,7 @@
 data/
 tests/.creds.yml
 tests/tmp.py
+tests-data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

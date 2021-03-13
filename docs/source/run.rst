@@ -52,7 +52,7 @@ By default, for a task to be complete, it checks if all dependencies are complet
 
 .. code-block:: python
 
-    TaskGetData().invalidate(confirm=False)
+    TaskGetData().reset(confirm=False)
     d6tflow.settings.check_dependencies=True # default
     d6tflow.preview(TaskTrain()) # TaskGetData is pending so all tasks are pending
     '''
@@ -108,7 +108,7 @@ You have several options to force tasks to reset and rerun. See sections below o
     d6tflow.run([TaskTrain()],force=[TaskGetData()])
 
     # reset single task
-    TaskGetData().invalidate()
+    TaskGetData().reset()
 
     # reset all downstream tasks
     d6tflow.invalidate_downstream(TaskGetData(), TaskTrain())
