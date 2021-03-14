@@ -80,7 +80,7 @@ def run(tasks, forced=None, forced_all=False, forced_all_upstream=False, confirm
     if not isinstance(tasks, (list,)):
         tasks = [tasks]
 
-    #if forced_all_upstream is true we are going to force run tasks anyway 
+    #if forced_all_upstream is true we are going to force run tasks anyway
     # in the second if condition.
     # So in this case we are going to skip running forced tasks.
     if forced_all and not forced_all_upstream:
@@ -113,7 +113,11 @@ def run(tasks, forced=None, forced_all=False, forced_all_upstream=False, confirm
     if execution_summary and luigi.__version__>='3.0.0':
         opts['detailed_summary']=True
     result = luigi.build(tasks, **opts)
-    if abort and not result.scheduling_succeeded:
+    if isinstance(result, bool):
+        success = result
+    else:
+        success = result.scheduling_succeeded
+    if abort and not success:
         raise RuntimeError('Exception found running flow, check trace. For more details see https://d6tflow.readthedocs.io/en/latest/run.html#debugging-failures')
 
     if execution_summary:
@@ -247,11 +251,11 @@ class dict_inherits:
             raise TypeError("tasks_to_inherit cannot be empty")
         #We know the first arg is a dict.
         self.tasks_to_inherit = tasks_to_inherit[0]
-        
+
     def __call__(self, task_that_inherits):
-        for task_to_inherit in self.tasks_to_inherit:                   
+        for task_to_inherit in self.tasks_to_inherit:
             for param_name, param_obj in self.tasks_to_inherit[task_to_inherit].get_params():
-                # Check if the parameter exists in the inheriting task                    
+                # Check if the parameter exists in the inheriting task
                 if not hasattr(task_that_inherits, param_name):
                     # If not, add it to the inheriting task
                     setattr(task_that_inherits, param_name, param_obj)
@@ -272,14 +276,14 @@ class dict_requires:
         super(dict_requires, self).__init__()
         if not tasks_to_require:
             raise TypeError("tasks_to_require cannot be empty")
-        
-        self.tasks_to_require = tasks_to_require[0] #Assign the dictionary 
+
+        self.tasks_to_require = tasks_to_require[0] #Assign the dictionary
 
     def __call__(self, task_that_requires):
         task_that_requires = dict_inherits(self.tasks_to_require)(task_that_requires)
         def requires(_self):
             return _self.clone_parents_dict()
-            
+
         task_that_requires.requires = requires
 
         return task_that_requires
@@ -300,78 +304,144 @@ def requires(*tasks_to_require):
     return luigi_requires(*tasks_to_require)
 
 
-class Workflow:
-    """
-        Workflow object for easier interaction with tasks.
-    """
-    def __init__(self, tasks: dict, params: dict=None):
-        """
-            Defines and assigns tasks and their respective params.
-        """
-        self.tasks = tasks
-        self.params = params if params else {}
-        self._assign_task_params()
-
-    def run(self,tasks_provided=None, **kwargs):
-        """ 
-            Runs all the tasks that are present in the __main__ file
-            tasks_provided can either be a list or a single string
-        """
-        if not tasks_provided:
-            run(list(self.tasks.values()), **kwargs)
-        else:
-            tasks_provided = tasks_provided if isinstance(tasks_provided, list) else [tasks_provided]
-            run([self.tasks[task] for task in self.tasks if task in tasks_provided], **kwargs)
-
-    def outputLoad(self, task):
-        """
-            Calls the outputLoad method of the task with as_dict set to true by default.
-        """
-        return self.tasks[task].outputLoad(as_dict=True)
-
-    def _assign_task_params(self):
-        """
-            Correctly assigns params to their respective tasks
-        """
-        self.task_params = {}
-
-        for task in self.tasks:
-            params = {}
-            for param in self.params:
-                if param in self.tasks[task].__dict__:
-                    params[param] = self.params[param]
-            self.task_params[task] = params
-
-        #instantiates all objects with their respective params    
-        for task in self.tasks:
-            self.tasks[task] = self.tasks[task](**self.task_params[task])
+class Workflow(object):
 
 
-def flow(params=None):
+    def __init__(self, params, default = None):
+        self.params = params
+        self.default_task = default
+
+
+    def preview(self, tasks=None, indent='', last=True, show_params=True, clip_params=False):
+        tasks = self.get_task(tasks)
+        if not isinstance(tasks, (list,)):
+            tasks = [tasks]
+        tasks = [x(**self.params) for x in tasks]
+        return preview(tasks = tasks, indent = indent, last = last, show_params = show_params, clip_params = clip_params)
+
+
+    def run(self,tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, **kwargs):
+        tasks = self.get_task(tasks)
+        if not isinstance(tasks, (list,)):
+            tasks = [tasks]
+        tasks = [x(**self.params) for x in tasks]
+        return run(tasks, forced=forced, forced_all=forced_all, forced_all_upstream=forced_all_upstream, confirm=confirm, workers=workers, abort=abort, execution_summary=execution_summary, **kwargs)
+
+
+    def outputLoad(self, task_cls=None, keys=None, as_dict=False, cached=False):
+        task_cls = self.get_task(task_cls)
+
+        return task_cls(**self.params).outputLoad(keys=keys, as_dict=as_dict, cached=cached)
+
+
+    def outputLoadAll(self, task_cls=None, keys=None, as_dict=False, cached=False):
+        task_cls = self.get_task(task_cls)
+        data_dict = {}
+        tasks = taskflow_upstream(task_cls(**self.params))
+        for task in tasks:
+            data_dict[type(task).__name__] = task.outputLoad(keys=keys, as_dict=as_dict, cached=cached)
+        return data_dict
+
+
+    def reset(self, task_cls, confirm=True):
+        return task_cls().reset(confirm)
+
+
+    def set_default(self, task):
+        self.default_task = task
+
+
+    def get_task(self, task_cls = None):
+        if task_cls is None:
+            if self.default_task is None:
+                raise RuntimeError('no default tasks set')
+            else:
+                task_cls = self.default_task
+        return task_cls
+
+
+class WorkflowMulti(object):
+
+    def __init__(self, exp_params, default = None):
+        self.exp_params = exp_params
+        self.default_task = default
+        if exp_params is not None:
+            self.workflow_objs = {k: Workflow(default=default, params=v) for k, v in self.exp_params.items()}
+
+
+    def run(self,tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, flow = None, **kwargs):
+        tasks = self.get_task(tasks)
+        if flow is not None:
+            return self.workflow_objs[flow].run(tasks=tasks, forced=forced, forced_all=forced_all,
+                                           forced_all_upstream=forced_all_upstream, confirm=confirm, workers=workers,
+                                           abort=abort,
+                                           execution_summary=execution_summary, **kwargs)
+        result = {}
+        for exp_name in self.exp_params.keys():
+            result[exp_name] = self.workflow_objs[exp_name].run(tasks, forced, forced_all, forced_all_upstream,
+                                                                  confirm, workers, abort,
+                                                                  execution_summary, **kwargs)
+        return result
+
+
+    def outputLoad(self, task_cls=None, keys=None, as_dict=False, cached=False, flow = None):
+        if flow is not None:
+            return self.workflow_objs[flow].outputLoad(task_cls, keys, as_dict, cached)
+        data = {}
+        for exp_name in self.exp_params.keys():
+            data[exp_name] = self.workflow_objs[exp_name].outputLoad(task_cls, keys, as_dict, cached)
+        return data
+
+
+    def outputLoadAll(self, task_cls=None, keys=None, as_dict=False, cached=False, flow = None):
+        if flow is not None:
+            return self.workflow_objs[flow].outputLoadAll(task_cls, keys, as_dict, cached)
+        data = {}
+        for exp_name in self.exp_params.keys():
+            data[exp_name] = self.workflow_objs[exp_name].outputLoadAll(task_cls, keys, as_dict, cached)
+        return data
+
+
+    def reset(self, task_cls, confirm=True):
+        return task_cls().reset(confirm)
+
+
+    def preview(self, tasks = None, indent='', last=True, show_params=True, clip_params=False, flow = None):
+        tasks = self.get_task(tasks)
+        if not isinstance(tasks, (list,)):
+            tasks = [tasks]
+        if flow is not None:
+            return self.workflow_objs[flow].preview(tasks)
+        data = {}
+        for exp_name in self.exp_params.keys():
+            data[exp_name] = self.workflow_objs[exp_name].preview(tasks = tasks, indent = indent, last = last, show_params=show_params, clip_params=clip_params)
+        return data
+
+
+    def set_default(self, task):
+        self.default_task = task
+        for exp_name in self.exp_params.keys():
+            self.workflow_objs[exp_name].set_default(task)
+
+
+    def get_task(self, task_cls = None):
+        if task_cls is None:
+            if self.default_task is None:
+                raise RuntimeError('no default tasks set')
+            else:
+                task_cls = self.default_task
+        return task_cls
+
+
+
+def flow(params=None, default = None):
     """
         Collects all tasks from the caller scope and
         creates a Workflow object with params given.
     """
 
-    #Inspect magic to get variables in caller scope
-    import inspect, types
-    frame = inspect.currentframe()
-    frame = frame.f_back
-    variables = frame.f_locals
+    return Workflow(params, default)
 
-    tasks = {}
-    for variable in variables:
 
-        # if variable is a module, 
-        # check inside the module to see if any of them has task classes defined.
-        # And we dont want to check inside luigi module
-        if isinstance(variables[variable], types.ModuleType) and not variables[variable].__name__ == "luigi":
-            module_variables = variables[variable].__dict__
-            for module_variable in module_variables:
-                if isinstance(module_variables[module_variable], luigi.task_register.Register):
-                    tasks[module_variable] = module_variables[module_variable]
-            
-        #Add to tasks dictionary if variable is a luigi task.
-        if isinstance(variables[variable], luigi.task_register.Register):
-            tasks[variable] = variables[variable]
-    return Workflow(tasks, params)
+def flowMulti(exp_params, default=None):
+    return WorkflowMulti(exp_params, default)
