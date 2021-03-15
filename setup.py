@@ -27,4 +27,8 @@ include_package_data=True,
 # pip install setuptools wheel twine
 python setup.py sdist bdist_wheel
 twine upload dist/*  --skip-existing
+<<<<<<< HEAD
+=======
+
+>>>>>>> master-prod
 '''

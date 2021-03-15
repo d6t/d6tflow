@@ -46,7 +46,7 @@ class TestWorkflow:
 
     def test_single_flow_preview(self):
         try:
-            flow = d6tflow.flow({'do_preprocess': False})
+            flow = d6tflow.Workflow({'do_preprocess': False})
 
             import io
             from contextlib import redirect_stdout
@@ -63,8 +63,8 @@ class TestWorkflow:
 
     def test_single_flow_parameters_passes_properly(self):
         try:
-            flow1 = d6tflow.flow({'do_preprocess': False})
-            flow2 = d6tflow.flow({'do_preprocess': True})
+            flow1 = d6tflow.Workflow({'do_preprocess': False})
+            flow2 = d6tflow.Workflow({'do_preprocess': True})
 
             import io
             from contextlib import redirect_stdout
@@ -83,7 +83,7 @@ class TestWorkflow:
 
     def test_task_runs_properly_and_gives_outputload(self):
         try:
-            flow = d6tflow.flow({'do_preprocess': False})
+            flow = d6tflow.Workflow({'do_preprocess': False})
             flow.preview(TaskTrain)
             flow.run(TaskTrain)
             out1 = flow.outputLoad(TaskTrain)
@@ -98,13 +98,13 @@ class TestWorkflow:
 
     def test_no_default_expect_error(self):
         with pytest.raises(RuntimeError):
-            flow = d6tflow.flow({'do_preprocess': False})
+            flow = d6tflow.Workflow({'do_preprocess': False})
             flow.run()
 
 
     def test_default_task(self):
         try:
-            flow = d6tflow.flow({'do_preprocess': False})
+            flow = d6tflow.Workflow({'do_preprocess': False})
             flow.set_default(TaskTrain)
             out_class = flow.get_task()
             type(out_class).__name__ == "TaskTrain"
@@ -114,7 +114,7 @@ class TestWorkflow:
 
     def test_tasks_with_dependencies_outputloadall(self):
         try:
-            flow = d6tflow.flow({'do_preprocess': False}, default=TaskTrain)
+            flow = d6tflow.Workflow({'do_preprocess': False}, default=TaskTrain)
             flow.preview()
             flow.run()
             flow.run(TaskPreprocess)
@@ -139,7 +139,7 @@ class TestWorkflowMulti:
 
     def test_preview_single_flow(self):
         try:
-            flow2 = d6tflow.flowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
+            flow2 = d6tflow.WorkflowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
                                       default=TaskTrain)
 
             import io
@@ -157,7 +157,7 @@ class TestWorkflowMulti:
 
     def test_preview_all_flow(self):
         try:
-            flow2 = d6tflow.flowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
+            flow2 = d6tflow.WorkflowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
                                       default=TaskTrain)
 
             import io
@@ -176,13 +176,13 @@ class TestWorkflowMulti:
 
     def test_no_default_expect_error(self):
         with pytest.raises(RuntimeError):
-            flow2 = d6tflow.flowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}})
+            flow2 = d6tflow.WorkflowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}})
             flow2.run()
 
 
     def test_default_task(self):
         try:
-            flow2 = d6tflow.flowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}})
+            flow2 = d6tflow.WorkflowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}})
             flow2.set_default(TaskTrain)
             out_class = flow2.get_task()
             type(out_class).__name__ == "TaskTrain"
@@ -192,7 +192,7 @@ class TestWorkflowMulti:
 
     def test_multi_exp_single_flows_single_outputload(self):
         try:
-            flow2 = d6tflow.flowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
+            flow2 = d6tflow.WorkflowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
                                       default=TaskTrain)
             flow2.run(flow = "experiment1")
 
@@ -204,7 +204,7 @@ class TestWorkflowMulti:
 
     def test_multi_exp_all_flows_outputloadall(self):
         try:
-            flow2 = d6tflow.flowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
+            flow2 = d6tflow.WorkflowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
                                       default=TaskTrain)
             flow2.run()
 

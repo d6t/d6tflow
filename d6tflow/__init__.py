@@ -80,7 +80,7 @@ def run(tasks, forced=None, forced_all=False, forced_all_upstream=False, confirm
     if not isinstance(tasks, (list,)):
         tasks = [tasks]
 
-    #if forced_all_upstream is true we are going to force run tasks anyway 
+    #if forced_all_upstream is true we are going to force run tasks anyway
     # in the second if condition.
     # So in this case we are going to skip running forced tasks.
     if forced_all and not forced_all_upstream:
@@ -251,11 +251,11 @@ class dict_inherits:
             raise TypeError("tasks_to_inherit cannot be empty")
         #We know the first arg is a dict.
         self.tasks_to_inherit = tasks_to_inherit[0]
-        
+
     def __call__(self, task_that_inherits):
-        for task_to_inherit in self.tasks_to_inherit:                   
+        for task_to_inherit in self.tasks_to_inherit:
             for param_name, param_obj in self.tasks_to_inherit[task_to_inherit].get_params():
-                # Check if the parameter exists in the inheriting task                    
+                # Check if the parameter exists in the inheriting task
                 if not hasattr(task_that_inherits, param_name):
                     # If not, add it to the inheriting task
                     setattr(task_that_inherits, param_name, param_obj)
@@ -276,14 +276,14 @@ class dict_requires:
         super(dict_requires, self).__init__()
         if not tasks_to_require:
             raise TypeError("tasks_to_require cannot be empty")
-        
-        self.tasks_to_require = tasks_to_require[0] #Assign the dictionary 
+
+        self.tasks_to_require = tasks_to_require[0] #Assign the dictionary
 
     def __call__(self, task_that_requires):
         task_that_requires = dict_inherits(self.tasks_to_require)(task_that_requires)
         def requires(_self):
             return _self.clone_parents_dict()
-            
+
         task_that_requires.requires = requires
 
         return task_that_requires
@@ -432,16 +432,3 @@ class WorkflowMulti(object):
                 task_cls = self.default_task
         return task_cls
 
-
-
-def flow(params=None, default = None):
-    """
-        Collects all tasks from the caller scope and
-        creates a Workflow object with params given.
-    """
-
-    return Workflow(params, default)
-
-
-def flowMulti(exp_params, default=None):
-    return WorkflowMulti(exp_params, default)
