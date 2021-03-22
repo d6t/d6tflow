@@ -32,7 +32,6 @@ takes a `d6tflow.tasks.TaskName` as parameter
             print("Running a complicated task!!")
 
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You might have noticed we provide a `task` parameter to the function above.
 
@@ -41,6 +40,12 @@ This is deliberate.
 If you have worked with d6tflow.task before you would remember having a `self` parameter passed to `run()` method.
 
 Here `task` is exactly that. It contains all methods available in `d6tflow.task.Task` 
+
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Running a functional task
+------------------------------------------------------------
 
 All functional tasks are run as `d6tflow.task` under the hood.
 
