@@ -363,13 +363,14 @@ class WorkflowMulti(object):
 
     def __init__(self, exp_params, default = None):
         self.exp_params = exp_params
+        if exp_params is None or len(exp_params.keys())==0:
+            raise Exception("Experments not defined")
         self.default_task = default
         if exp_params is not None:
             self.workflow_objs = {k: Workflow(default=default, params=v) for k, v in self.exp_params.items()}
 
 
     def run(self,tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, flow = None, **kwargs):
-        tasks = self.get_task(tasks)
         if flow is not None:
             return self.workflow_objs[flow].run(tasks=tasks, forced=forced, forced_all=forced_all,
                                            forced_all_upstream=forced_all_upstream, confirm=confirm, workers=workers,
@@ -401,12 +402,14 @@ class WorkflowMulti(object):
         return data
 
 
-    def reset(self, task_cls, confirm=True):
-        return task_cls().reset(confirm)
+    def reset(self, task_cls, confirm=True, flow = None):
+        if flow is not None:
+            return self.workflow_objs[flow].reset(task_cls, confirm)
+        return {self.workflow_objs[exp_name].reset(task_cls, confirm) for exp_name in self.exp_params.keys()}
+
 
 
     def preview(self, tasks = None, indent='', last=True, show_params=True, clip_params=False, flow = None):
-        tasks = self.get_task(tasks)
         if not isinstance(tasks, (list,)):
             tasks = [tasks]
         if flow is not None:
@@ -423,11 +426,13 @@ class WorkflowMulti(object):
             self.workflow_objs[exp_name].set_default(task)
 
 
-    def get_task(self, task_cls = None):
+    def get_task(self, task_cls = None, flow = None):
         if task_cls is None:
             if self.default_task is None:
                 raise RuntimeError('no default tasks set')
             else:
                 task_cls = self.default_task
-        return task_cls
+        if flow is None:
+            return {exp_name: task_cls(**self.exp_params[exp_name]) for exp_name in self.exp_params.keys()}
+        return task_cls(self.exp_params[flow])
 
