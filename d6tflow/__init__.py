@@ -307,44 +307,43 @@ def requires(*tasks_to_require):
 class Workflow(object):
 
 
-    def __init__(self, params, default = None):
+    def __init__(self, params={}, default = None):
         self.params = params
         self.default_task = default
 
 
     def preview(self, tasks=None, indent='', last=True, show_params=True, clip_params=False):
-        tasks = self.get_task(tasks)
         if not isinstance(tasks, (list,)):
             tasks = [tasks]
-        tasks = [x(**self.params) for x in tasks]
-        return preview(tasks = tasks, indent = indent, last = last, show_params = show_params, clip_params = clip_params)
+        tasks_inst = [self.get_task(x) for x in tasks]
+        return preview(tasks = tasks_inst, indent = indent, last = last, show_params = show_params, clip_params = clip_params)
 
 
     def run(self,tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, **kwargs):
-        tasks = self.get_task(tasks)
         if not isinstance(tasks, (list,)):
             tasks = [tasks]
-        tasks = [x(**self.params) for x in tasks]
-        return run(tasks, forced=forced, forced_all=forced_all, forced_all_upstream=forced_all_upstream, confirm=confirm, workers=workers, abort=abort, execution_summary=execution_summary, **kwargs)
+        tasks_inst = [self.get_task(x) for x in tasks]
+        return run(tasks_inst, forced=forced, forced_all=forced_all, forced_all_upstream=forced_all_upstream, confirm=confirm, workers=workers, abort=abort, execution_summary=execution_summary, **kwargs)
 
 
     def outputLoad(self, task_cls=None, keys=None, as_dict=False, cached=False):
-        task_cls = self.get_task(task_cls)
+        task_cls_inst = self.get_task(task_cls)
 
-        return task_cls(**self.params).outputLoad(keys=keys, as_dict=as_dict, cached=cached)
+        return task_cls_inst.outputLoad(keys=keys, as_dict=as_dict, cached=cached)
 
 
     def outputLoadAll(self, task_cls=None, keys=None, as_dict=False, cached=False):
-        task_cls = self.get_task(task_cls)
+        task_cls_inst = self.get_task(task_cls)
         data_dict = {}
-        tasks = taskflow_upstream(task_cls(**self.params))
+        tasks = taskflow_upstream(task_cls_inst)
         for task in tasks:
             data_dict[type(task).__name__] = task.outputLoad(keys=keys, as_dict=as_dict, cached=cached)
         return data_dict
 
 
     def reset(self, task_cls, confirm=True):
-        return task_cls().reset(confirm)
+        task_cls_inst = self.get_task(task_cls)
+        return task_cls_inst.reset(confirm)
 
 
     def set_default(self, task):
@@ -357,7 +356,7 @@ class Workflow(object):
                 raise RuntimeError('no default tasks set')
             else:
                 task_cls = self.default_task
-        return task_cls
+        return task_cls(**self.params)
 
 
 class WorkflowMulti(object):

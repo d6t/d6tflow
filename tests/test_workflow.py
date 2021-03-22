@@ -61,6 +61,17 @@ class TestWorkflow:
             pytest.fail("Unexpected error" + e.__str__())
 
 
+    def test_single_workflow_no_params_passes(self):
+        flow = d6tflow.Workflow()
+        import io
+        from contextlib import redirect_stdout
+
+        with io.StringIO() as buf, redirect_stdout(buf):
+            flow.preview(TaskTrain)
+            output = buf.getvalue()
+            assert output.count("'do_preprocess': 'True'")==1
+
+
     def test_single_flow_parameters_passes_properly(self):
         try:
             flow1 = d6tflow.Workflow({'do_preprocess': False})
