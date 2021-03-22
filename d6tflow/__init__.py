@@ -346,6 +346,12 @@ class Workflow(object):
         return task_cls_inst.reset(confirm)
 
 
+    def invalidate_downstream(self, task_cls, task_downstream_cls, confirm=True):
+        task_inst = self.get_task(task_cls)
+        task_downstream_inst = self.get_task(task_downstream_cls)
+        return taskflow_downstream(task_inst, task_downstream_inst, confirm)
+
+
     def set_default(self, task):
         self.default_task = task
 
