@@ -72,7 +72,6 @@ class Flow:
             Examples
             --------
             @flow.requires({"foo": func1, "bar": func2})
-            @flow.requires(func1, func2)
             @flow.requires(func1)
         """
         if isinstance(args[0], dict):
