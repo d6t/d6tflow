@@ -41,6 +41,13 @@ class TaskTrain(d6tflow.tasks.TaskPickle): # save output as pickle
         self.save(model)
 
 
+class Task1(d6tflow.tasks.TaskCache):
+    param1 = d6tflow.IntParameter(default=0)
+
+    def run(self):
+        self.save({'hello':self.param1})
+
+
 class TestWorkflow:
 
 
@@ -98,6 +105,25 @@ class TestWorkflow:
         assert np.all(out2.drop(['y'], axis=1) == df_train)
 
 
+    def test_output_load_comparing_with_task_run(self):
+        params = {'param1': 1}
+        flow = d6tflow.Workflow(params, default=Task1)
+
+        flow.run()
+        assert Task1(**params).complete() == True
+        assert Task1(**params).outputLoad()['hello'] == params['param1']
+        assert flow.outputLoad() == Task1(**params).outputLoad()
+
+
+    def test_output_load_all_comparing_with_task_run(self):
+        params = {'param1': 1}
+        flow = d6tflow.Workflow(params, default=Task1)
+
+        flow.run()
+        outputs = flow.outputLoadAll()
+        assert outputs['Task1'] == Task1(**params).outputLoad()
+
+
     def test_no_default_expect_error(self):
         with pytest.raises(RuntimeError):
             flow = d6tflow.Workflow({'do_preprocess': False})
@@ -129,6 +155,14 @@ class TestWorkflow:
         df_train = pd.DataFrame(ds.data, columns=ds.feature_names)
         assert np.all(data['TaskPreprocess'].drop(['y'], axis=1) == df_train)
         assert np.all(data['TaskGetData'].drop(['y'], axis=1) == df_train)
+
+
+    def test_get_task(self):
+        flow0 = d6tflow.Workflow(default=Task1)
+        assert flow0.get_task().param_kwargs['param1'] == 0
+        params = {'param1': 1}
+        flow = d6tflow.Workflow(params, default=Task1)
+        assert flow.get_task().param_kwargs['param1'] == params['param1']
 
 
 class TestWorkflowMulti:
@@ -200,3 +234,32 @@ class TestWorkflowMulti:
         data = flow2.outputLoadAll()
         type(data['experiment1']['TaskTrain']).__name__ == "LogisticRegression"
         type(data['experiment2']['TaskTrain']).__name__ == "LogisticRegression"
+
+
+    def test_multi_get_task(self):
+        params2 = {'param1': 2}
+        params = {'param1': 1}
+        flow2 = d6tflow.WorkflowMulti({1: params, 2: params2}, default=Task1)
+        assert flow2.get_task(flow=1).param_kwargs['param1'] == 1
+        assert flow2.get_task(flow=2).param_kwargs['param1'] == 2
+
+
+    def test_output_load_comparing_with_task_run(self):
+        params2 = {'param1': 2}
+        params = {'param1': 1}
+        flow2 = d6tflow.WorkflowMulti({1: params, 2: params2}, default=Task1)
+
+        flow2.run()
+        assert flow2.outputLoad(flow = 1) == Task1(**params).outputLoad()
+        assert flow2.outputLoad(flow = 2) == Task1(**params2).outputLoad()
+
+
+    def test_output_load_all_comparing_with_task_run(self):
+        params2 = {'param1': 2}
+        params = {'param1': 1}
+        flow2 = d6tflow.WorkflowMulti({1: params, 2: params2}, default=Task1)
+
+        flow2.run()
+        outputs = flow2.outputLoadAll()
+        assert outputs[1]['Task1'] == Task1(**params).outputLoad()
+        assert outputs[2]['Task1'] == Task1(**params2).outputLoad()

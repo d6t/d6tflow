@@ -440,5 +440,5 @@ class WorkflowMulti(object):
                 task_cls = self.default_task
         if flow is None:
             return {exp_name: task_cls(**self.exp_params[exp_name]) for exp_name in self.exp_params.keys()}
-        return task_cls(self.exp_params[flow])
+        return task_cls(**self.exp_params[flow])
 
