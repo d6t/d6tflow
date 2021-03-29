@@ -307,9 +307,9 @@ def requires(*tasks_to_require):
 class Workflow(object):
 
 
-    def __init__(self, params={}, default = None):
+    def __init__(self, params={}, task = None):
         self.params = params
-        self.default_task = default
+        self.default_task = task
 
 
     def preview(self, tasks=None, indent='', last=True, show_params=True, clip_params=False):
@@ -346,7 +346,7 @@ class Workflow(object):
         return task_cls_inst.reset(confirm)
 
 
-    def invalidate_downstream(self, task_cls, task_downstream_cls, confirm=True):
+    def reset_downstream(self, task_cls, task_downstream_cls, confirm=True):
         task_inst = self.get_task(task_cls)
         task_downstream_inst = self.get_task(task_downstream_cls)
         return taskflow_downstream(task_inst, task_downstream_inst, confirm)
@@ -367,13 +367,13 @@ class Workflow(object):
 
 class WorkflowMulti(object):
 
-    def __init__(self, exp_params, default = None):
+    def __init__(self, exp_params, task = None):
         self.exp_params = exp_params
         if exp_params is None or len(exp_params.keys())==0:
             raise Exception("Experments not defined")
-        self.default_task = default
+        self.default_task = task
         if exp_params is not None:
-            self.workflow_objs = {k: Workflow(default=default, params=v) for k, v in self.exp_params.items()}
+            self.workflow_objs = {k: Workflow(task=task, params=v) for k, v in self.exp_params.items()}
 
 
     def run(self,tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, flow = None, **kwargs):
