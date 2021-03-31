@@ -8,6 +8,8 @@ import d6tflow.settings as settings
 from d6tflow.cache import data as cache
 import d6tflow.cache
 
+import pickle
+
 def _taskpipeoperation(task, fun, funargs=None):
     pipe = task.get_pipe()
     fun = getattr(pipe, fun)
@@ -172,6 +174,27 @@ class TaskData(luigi.Task):
                 raise ValueError('Save dictionary needs to consistent with Task.persist')
             for k, v in data.items():
                 targets[k].save(v, **kwargs)
+
+    def metaSave(self, data):
+        meta_file = f"meta-{self.task_id.split('_')[-1]}.pickle"
+        path = d6tflow.settings.dirpath / meta_file
+        d6tflow.settings.dirpath.mkdir(parents=True, exist_ok=True)
+        pickle.dump(data, open(path, "wb"))
+
+    def metaLoad(self):
+        if isinstance(self.requires(), dict):
+            output = {}
+            inputs = self.requires()
+            for _input in inputs:
+                meta_file = f"meta-{inputs[_input].task_id.split('_')[-1]}.pickle"
+                path = d6tflow.settings.dirpath / meta_file
+                output[_input] = pickle.load(open(path, "rb"))
+            return output
+        else:
+            _input = self.requires()
+            meta_file = f"meta-{_input.task_id.split('_')[-1]}.pickle"
+            path = d6tflow.settings.dirpath / meta_file
+            return pickle.load(open(path, "rb"))
 
     @d6tcollect._collectClass
     def get_pipename(self):
