@@ -28,8 +28,8 @@ takes a `d6tflow.tasks.TaskName` as parameter
 .. code-block:: python
 
     @flow.step(d6tflow.tasks.TaskPqPandas)
-        def your_functional_task(task):
-            print("Running a complicated task!!")
+    def your_functional_task(task):
+        print("Running a complicated task!!")
 
 
 
