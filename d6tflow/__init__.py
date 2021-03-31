@@ -22,7 +22,7 @@ import d6tflow.cache
 
 from d6tflow.settings import dir, dirpath
 
-print('Welcome to d6tflow!')# We hope you find it useful. If you run into any problems please raise an issue on github at https://github.com/d6t/d6tflow')
+print('Welcome to d6tflow2!')# We hope you find it useful. If you run into any problems please raise an issue on github at https://github.com/d6t/d6tflow')
 
 def set_dir(dir=None):
     """
@@ -297,7 +297,11 @@ def requires(*tasks_to_require):
     #Check the type; if a dictionary call our custom requires decorator
     is_dict = isinstance(tasks_to_require[0], dict)
     if len(tasks_to_require) > 1 and not is_dict:
-        raise TypeError("Please use a dictionary if you are passing multiple tasks to d6tflow.requires() \n \
+        if isinstance(tasks_to_require, tuple):
+            tasks_to_require = (dict(zip(range(len(tasks_to_require)),tasks_to_require)),)
+            return dict_requires(*tasks_to_require)
+        else:
+            raise TypeError("Please use a dictionary if you are passing multiple tasks to d6tflow.requires() \n \
         Example: @d6tflow.requires({'task1': Task1, 'task2': Task2})")
     if is_dict:
         return dict_requires(*tasks_to_require)
