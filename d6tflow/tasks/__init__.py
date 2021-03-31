@@ -30,6 +30,7 @@ class TaskData(luigi.Task):
     target_class = d6tflow.targets.DataTarget
     target_ext = 'ext'
     persist = ['data']
+    metadata = None
 
     def __init__(self, *args, **kwargs):
         kwargs_ = {k:v for k,v in kwargs.items() if k in self.get_param_names()}
@@ -176,6 +177,7 @@ class TaskData(luigi.Task):
                 targets[k].save(v, **kwargs)
 
     def metaSave(self, data):
+        self.metadata = data
         meta_file = f"meta-{self.task_id.split('_')[-1]}.pickle"
         path = d6tflow.settings.dirpath / meta_file
         d6tflow.settings.dirpath.mkdir(parents=True, exist_ok=True)
