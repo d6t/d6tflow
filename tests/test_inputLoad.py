@@ -115,24 +115,30 @@ def test_task_inputLoad_multiple_multiple():
     d6tflow.run(TaskMultipleInput2(), forced_all=True,
                 forced_all_upstream=True, confirm=False)
 
-# multiple dependencies, multiple outputs but should raise error
-def test_task_inputLoad_multiple_multiple_error():
+# multiple dependencies, multiple outputs (Tuples)
+def test_task_inputLoad_multiple_multiple_tuple():
     @d6tflow.requires(TaskMultipleOutput1, TaskMultipleOutput2)
-    class TaskMultipleInput2ShouldRaiseError(d6tflow.tasks.TaskPqPandas):
+    class TaskMultipleInput2(d6tflow.tasks.TaskPqPandas):
         def run(self):
-            with pytest.raises(TypeError):
-                _ = self.inputLoad(as_dict=True)
+            data = self.inputLoad(as_dict=True)
+            assert data[0]["output1"].equals(data[1]["output1"])
+            assert data[0]["output2"].equals(data[1]["output2"])
 
-            with pytest.raises(TypeError):
-                _, _ = self.inputLoad()
+            data1a, data1b = self.inputLoad()[0]
+            data2a, data2b = self.inputLoad()[1]
 
-            with pytest.raises(TypeError):
-                _, _ = self.inputLoad(task='input1')
-                _, _ = self.inputLoad(task='input2')
+            assert data1a.equals(data2a)
+            assert data1b.equals(data2b)
 
-            with pytest.raises(TypeError):
-                _ = self.inputLoad(task='input1', as_dict=True)
-                _ = self.inputLoad(task='input2', as_dict=True)
+            data1a, data1b = self.inputLoad(task=0)
+            data2a, data2b = self.inputLoad(task=1)
+            assert data1a.equals(data2a)
+            assert data1b.equals(data2b)
 
-    d6tflow.run(TaskMultipleInput2ShouldRaiseError(),
-                forced_all=True, forced_all_upstream=True, confirm=False)
+            data1 = self.inputLoad(task=0, as_dict=True)
+            data2 = self.inputLoad(task=1, as_dict=True)
+            assert data1["output1"].equals(data2["output1"])
+            assert data1["output2"].equals(data2["output2"])
+
+    d6tflow.run(TaskMultipleInput2(), forced_all=True,
+                forced_all_upstream=True, confirm=False)
