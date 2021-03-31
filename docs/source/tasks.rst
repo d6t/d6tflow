@@ -102,50 +102,56 @@ Input data from upstream dependency tasks can be easily loaded in ``run()``
     # single dependency, single output
     @d6tflow.requires(TaskSingleOutput)
     class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
-
         def run(self):
             data = self.inputLoad()
-            #or
-            data = self.input().load()
 
     # single dependency, multiple outputs
     @d6tflow.requires(TaskMultipleOutput)
     class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
-
         def run(self):
-            data = self.inputLoad()['output1']
-            data = self.inputLoad()['output2']
-            #or
-            data = self.input()['output1'].load()
-            data = self.input()['output2'].load()
+            data1, data2 = self.inputLoad()
 
     # multiple dependencies, single output
     @d6tflow.requires({'input1':TaskSingleOutput1, 'input2':TaskSingleOutput2})
     class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
-
         def run(self):
             data1 = self.inputLoad()['input1']
             data2 = self.inputLoad()['input2']
             # or
-            data1 = self.input()['input1'].load()
-            data2 = self.input()['input2'].load()
+            data1 = self.inputLoad(task='input1')
+            data2 = self.inputLoad(task='input2')
 
     # multiple dependencies, multiple outputs
     @d6tflow.requires({'input1':TaskMultipleOutput1, 'input2':TaskMultipleOutput2})
     class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
-
         def run(self):
-            data = self.inputLoad()
+            data = self.inputLoad(as_dict=True)
             data1a = data['input1']['output1']
+            data1b = data['input1']['output2']
+            data2a = data['input2']['output1']
+            data2b = data['input2']['output2']
+            # or
+            data1a, data1b = self.inputLoad()["input1"]
+            data2a, data2b = self.inputLoad()["input2"]
             # or
             data1a, data1b = self.inputLoad(task='input1')
             data2a, data2b = self.inputLoad(task='input2')
-            # or
-            data1a = self.input()['input1']['output1'].load()
-            data1b = self.input()['input1']['output2'].load()
-            data2a = self.input()['input2']['output1'].load()
-            data2b = self.input()['input2']['output2'].load()
 
+    # multiple dependencies (without using dictionary), multiple outputs 
+    @d6tflow.requires(TaskMultipleOutput1, TaskMultipleOutput2)
+    class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
+        def run(self):
+            data = self.inputLoad(as_dict=True)
+            data1a = data[0]['output1']
+            data1b = data[0]['output2']
+            data2a = data[1]['output1']
+            data2b = data[1]['output2']
+            # or
+            data1a, data1b = self.inputLoad()[0]
+            data2a, data2b = self.inputLoad()[1]
+            # or
+            data1a, data1b = self.inputLoad(task=0)
+            data2a, data2b = self.inputLoad(task=1)
 
 Load External Files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
