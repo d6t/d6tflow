@@ -311,8 +311,8 @@ def requires(*tasks_to_require):
 class Workflow(object):
 
 
-    def __init__(self, params={}, task = None):
-        self.params = params
+    def __init__(self, params=None, task = None):
+        self.params = {} if params is None else params
         self.default_task = task
 
 
@@ -374,7 +374,7 @@ class WorkflowMulti(object):
     def __init__(self, exp_params, task = None):
         self.exp_params = exp_params
         if exp_params is None or len(exp_params.keys())==0:
-            raise Exception("Experments not defined")
+            raise Exception("Experiments not defined")
         self.default_task = task
         if exp_params is not None:
             self.workflow_objs = {k: Workflow(task=task, params=v) for k, v in self.exp_params.items()}
