@@ -22,7 +22,7 @@ import d6tflow.cache
 
 from d6tflow.settings import dir, dirpath
 
-print('Welcome to d6tflow2!')# We hope you find it useful. If you run into any problems please raise an issue on github at https://github.com/d6t/d6tflow')
+print('Welcome to d6tflow!')# We hope you find it useful. If you run into any problems please raise an issue on github at https://github.com/d6t/d6tflow')
 
 def set_dir(dir=None):
     """
