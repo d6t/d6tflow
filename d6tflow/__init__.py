@@ -13,7 +13,7 @@ from luigi.parameter import (
 )
 
 import d6tcollect
-d6tcollect.submit = False
+d6tcollect.submit = True
 
 import d6tflow.targets, d6tflow.tasks, d6tflow.settings
 import d6tflow.utils
