@@ -178,7 +178,7 @@ class TaskData(luigi.Task):
 
     def metaSave(self, data):
         self.metadata = data
-        meta_file = f"meta-{self.task_id.split('_')[-1]}.pickle"
+        meta_file = f"meta-{self.task_id}.pickle"
         path = d6tflow.settings.dirpath / meta_file
         d6tflow.settings.dirpath.mkdir(parents=True, exist_ok=True)
         pickle.dump(data, open(path, "wb"))
@@ -188,13 +188,13 @@ class TaskData(luigi.Task):
             output = {}
             inputs = self.requires()
             for _input in inputs:
-                meta_file = f"meta-{inputs[_input].task_id.split('_')[-1]}.pickle"
+                meta_file = f"meta-{inputs[_input].task_id}.pickle"
                 path = d6tflow.settings.dirpath / meta_file
                 output[_input] = pickle.load(open(path, "rb"))
             return output
         else:
             _input = self.requires()
-            meta_file = f"meta-{_input.task_id.split('_')[-1]}.pickle"
+            meta_file = f"meta-{_input.task_id}.pickle"
             path = d6tflow.settings.dirpath / meta_file
             return pickle.load(open(path, "rb"))
 
