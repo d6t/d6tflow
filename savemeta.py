@@ -30,3 +30,4 @@ class Task3(d6tflow.tasks.TaskCache):
         self.save(df)
 
 d6tflow.run(Task3())
+print(Task3().outputLoadAllMeta())
