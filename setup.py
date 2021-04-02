@@ -11,7 +11,7 @@ setup(
     description='d6tflow is a python library which makes it easier to build data workflows',
     long_description='d6tflow is a python library which makes it easier to build data workflows'
         'See https://github.com/d6t/d6tflow for details',
-    install_requires=['luigi', 'pandas', 'pyarrow','d6tcollect'
+    install_requires=['luigi', 'pandas', 'pyarrow','d6tcollect>=1.0.6'
     ],
     extras_require={
         'dask': ['toolz','dask[dataframe]'],
