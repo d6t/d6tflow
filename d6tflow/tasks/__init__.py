@@ -206,22 +206,22 @@ class TaskData(luigi.Task):
             return pickle.load(open(path, "rb"))
 
     def outputLoadMeta(self):
-        if not self.complete():
+        if not self.complete(cascade=False):
             raise RuntimeError(
                 'Cannot load, task not complete, run flow first')
         path = self._get_meta_path(self)
         try:
             data = pickle.load(open(path, "rb"))
         except FileNotFoundError:
-            raise RuntimeError(f"No metadata to load for task {self.task_family}")
+            raise RuntimeError(
+                f"No metadata to load for task {self.task_family}")
         return data
 
     def outputLoadAllMeta(self):
-        if not self.complete():
+        if not self.complete(cascade=False):
             raise RuntimeError(
                 'Cannot load, task not complete, run flow first')
         tasks = d6tflow.taskflow_upstream(self, only_complete=True)
-        print("tasks", tasks)
         meta = []
         for task in tasks:
             try:

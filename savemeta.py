@@ -22,12 +22,7 @@ class Task3(d6tflow.tasks.TaskCache):
         meta = self.metaLoad()['upstream1']
         print(meta)
         print(meta['columns'])
-
-        df1 = self.input()['upstream1'].load() # quickly load input data
-        df2 = self.input()['upstream2'].load() # quickly load input data
-        df = df1.join(df2, lsuffix='1', rsuffix='2')
-        df['b']=df['a1']*self.multiplier # use task parameter
-        self.save(df)
+        self.metaSave({'columns':100})
 
 d6tflow.run(Task3())
 print(Task3().outputLoadAllMeta())
