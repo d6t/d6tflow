@@ -44,23 +44,19 @@ params_model2 = {'do_preprocess':False, 'model':'gbm'}
 
 # run workflow
 flow = d6tflow.WorkflowMulti(ModelTrain, {'ols':params_model1, 'gbm':params_model2})
-flow.run()
-flow.reset_upstream(confirm=False)
-assert flow.get_task('gbm').output().path.exists()==False
-assert flow.get_task('gbm').complete()==False
-quit()
-flow.preview('ols')
-flow.run('ols')
+flow.reset_upstream(confirm=False) # force re-run
+print(flow.preview('ols'))
 
-flow.run(forced_all_upstream=True, confirm=False)
+flow.run()
 
 data = flow.outputLoadAll()
 
 scores = flow.outputLoadMeta()
 print(scores)
 
-models = flow.outputLoad(task=ModelTrain)
+# get training data and models
 data_train = flow.outputLoad(task=ModelData)
+models = flow.outputLoad(task=ModelTrain)
 
 print(models['ols'].score(data_train['ols'].drop('y',1), data_train['ols']['y']))
 print(models['gbm'].score(data_train['gbm'].drop('y',1), data_train['gbm']['y']))

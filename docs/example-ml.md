@@ -22,17 +22,17 @@ import sklearn, sklearn.datasets, sklearn.svm, sklearn.linear_model
 import pandas as pd
 
 # define workflow
-class TaskGetData(d6tflow.tasks.TaskPqPandas):  # save dataframe as parquet
+class GetData(d6tflow.tasks.TaskPqPandas):  # save dataframe as parquet
 
     def run(self):
-        ds = sklearn.datasets.load_breast_cancer()
+        ds = sklearn.datasets.load_boston()
         df_train = pd.DataFrame(ds.data, columns=ds.feature_names)
         df_train['y'] = ds.target
         self.save(df_train) # quickly save dataframe
 
 
-@d6tflow.requires(TaskGetData) # define dependency
-class TaskPreprocess(d6tflow.tasks.TaskPqPandas):
+@d6tflow.requires(GetData) # define dependency
+class ModelData(d6tflow.tasks.TaskPqPandas):
     do_preprocess = d6tflow.BoolParameter(default=True) # parameter for preprocessing yes/no
 
     def run(self):
@@ -41,62 +41,63 @@ class TaskPreprocess(d6tflow.tasks.TaskPqPandas):
             df_train.iloc[:,:-1] = sklearn.preprocessing.scale(df_train.iloc[:,:-1])
         self.save(df_train)
 
-@d6tflow.requires(TaskPreprocess) # automatically pass parameters upstream
-class TaskTrain(d6tflow.tasks.TaskPickle): # save output as pickle
+@d6tflow.requires(ModelData) # automatically pass parameters upstream
+class ModelTrain(d6tflow.tasks.TaskPickle): # save output as pickle
     model = d6tflow.Parameter(default='ols') # parameter for model selection
 
     def run(self):
         df_train = self.input().load()
         if self.model=='ols':
-            model = sklearn.linear_model.LogisticRegression()
-        elif self.model=='svm':
-            model = sklearn.svm.SVC()
+            model = sklearn.linear_model.LinearRegression()
+        elif self.model=='gbm':
+            model = sklearn.ensemble.GradientBoostingRegressor()
         else:
             raise ValueError('invalid model selection')
         model.fit(df_train.drop('y',1), df_train['y'])
         self.save(model)
+        self.saveMeta({'score':model.score(df_train.drop('y',1), df_train['y'])})
 
 # goal: compare performance of two models
 params_model1 = {'do_preprocess':True, 'model':'ols'}
-params_model2 = {'do_preprocess':False, 'model':'svm'}
+params_model2 = {'do_preprocess':False, 'model':'gbm'}
 
-# run workflow for model 1
-d6tflow.run(TaskTrain(**params_model1)) 
+# run workflow
+flow = d6tflow.WorkflowMulti(ModelTrain, {'ols':params_model1, 'gbm':params_model2})
+flow.reset_upstream(confirm=False) # force re-run
+print(flow.preview('ols'))
 
+flow.run()
 '''
-===== Luigi Execution Summary =====
-
 Scheduled 3 tasks of which:
 * 3 ran successfully:
-    - 1 TaskGetData()
-    - 1 TaskPreprocess(do_preprocess=False)
-    - 1 TaskTrain(do_preprocess=False, model=ols)
+    - 1 GetData()
+    - 1 ModelData(do_preprocess=True)
+    - 1 ModelTrain(do_preprocess=True, model=ols)
+
+# To run 2nd model, don't need to re-run all tasks, only the ones that changed
+Scheduled 3 tasks of which:
+* 1 complete ones were encountered:
+    - 1 GetData()
+* 2 ran successfully:
+    - 1 ModelData(do_preprocess=False)
+    - 1 ModelTrain(do_preprocess=False, model=gbm)
+
 '''
 
-# Intelligently rerun workflow after changing parameters
-d6tflow.preview(TaskTrain(**params_model2))
+data = flow.outputLoadAll()
 
-'''
-└─--[TaskTrain-{'do_preprocess': 'False'} (PENDING)]
-   └─--[TaskPreprocess-{'do_preprocess': 'False'} (PENDING)]
-      └─--[TaskGetData-{} (COMPLETE)] => this doesn't change and doesn't need to rerun
-'''
+scores = flow.outputLoadMeta()
+print(scores)
+# {'ols': {'score': 0.7406426641094095}, 'gbm': {'score': 0.9761405838418584}}
 
-# run workflow for model 2
-d6tflow.run(TaskTrain(**params_model2))
+# get training data and models
+data_train = flow.outputLoad(task=ModelData)
+models = flow.outputLoad(task=ModelTrain)
 
-# compare results from new model
-# Load task output to pandas dataframe and model object for model evaluation
-
-model1 = TaskTrain(**params_model1).output().load()
-df_train = TaskPreprocess(**params_model1).output().load()
-print(model1.score(df_train.drop('y',1), df_train['y']))
-# 0.987
-
-model2 = TaskTrain(**params_model2).output().load()
-df_train = TaskPreprocess(**params_model2).output().load()
-print(model2.score(df_train.drop('y',1), df_train['y']))
-# 0.922
+print(models['ols'].score(data_train['ols'].drop('y',1), data_train['ols']['y']))
+# 0.7406426641094095
+print(models['gbm'].score(data_train['gbm'].drop('y',1), data_train['gbm']['y']))
+# 0.9761405838418584
 
 ```
 
