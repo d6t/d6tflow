@@ -41,5 +41,3 @@ assert Task3().outputLoad()=={'Task3':'3'}
 assert Task3().outputLoadMeta()=={'c': 3}
 
 assert Task2().output().pathmeta == Task4()._getpath(d6tflow.settings.dirpath,'meta').with_suffix('.pickle') # 'data/Task4/Task4__99914b932b-meta.pickle'
-
-

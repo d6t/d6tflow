@@ -52,7 +52,7 @@ class TestWorkflow:
 
 
     def test_single_flow_preview(self):
-        flow = d6tflow.Workflow({'do_preprocess': False})
+        flow = d6tflow.Workflow(params = {'do_preprocess': False})
 
         import io
         from contextlib import redirect_stdout
@@ -77,8 +77,8 @@ class TestWorkflow:
 
 
     def test_single_flow_parameters_passes_properly(self):
-        flow1 = d6tflow.Workflow({'do_preprocess': False})
-        flow2 = d6tflow.Workflow({'do_preprocess': True})
+        flow1 = d6tflow.Workflow(params = {'do_preprocess': False})
+        flow2 = d6tflow.Workflow(params = {'do_preprocess': True})
 
         import io
         from contextlib import redirect_stdout
@@ -94,7 +94,7 @@ class TestWorkflow:
 
 
     def test_task_runs_properly_and_gives_outputload(self):
-        flow = d6tflow.Workflow({'do_preprocess': False})
+        flow = d6tflow.Workflow(params = {'do_preprocess': False})
         flow.preview(TaskTrain)
         flow.run(TaskTrain)
         out1 = flow.outputLoad(TaskTrain)
@@ -107,7 +107,7 @@ class TestWorkflow:
 
     def test_output_load_comparing_with_task_run(self):
         params = {'param1': 1}
-        flow = d6tflow.Workflow(params, task=Task1)
+        flow = d6tflow.Workflow(params = params, task=Task1)
 
         flow.run()
         assert Task1(**params).complete() == True
@@ -117,7 +117,7 @@ class TestWorkflow:
 
     def test_output_load_all_comparing_with_task_run(self):
         params = {'param1': 1}
-        flow = d6tflow.Workflow(params, task=Task1)
+        flow = d6tflow.Workflow(params = params, task=Task1)
 
         flow.run()
         outputs = flow.outputLoadAll()
@@ -126,7 +126,7 @@ class TestWorkflow:
 
     def test_no_default_expect_error(self):
         with pytest.raises(RuntimeError):
-            flow = d6tflow.Workflow({'do_preprocess': False})
+            flow = d6tflow.Workflow(params = {'do_preprocess': False})
             flow.run()
 
 
@@ -138,7 +138,7 @@ class TestWorkflow:
 
 
     def test_tasks_with_dependencies_outputloadall(self):
-        flow = d6tflow.Workflow({'do_preprocess': False}, task=TaskTrain)
+        flow = d6tflow.Workflow(params = {'do_preprocess': False}, task=TaskTrain)
         flow.preview()
         flow.run()
         flow.run(TaskPreprocess)
@@ -161,14 +161,14 @@ class TestWorkflow:
         flow0 = d6tflow.Workflow(task=Task1)
         assert flow0.get_task().param_kwargs['param1'] == 0
         params = {'param1': 1}
-        flow = d6tflow.Workflow(params, task=Task1)
+        flow = d6tflow.Workflow(params = params, task=Task1)
         assert flow.get_task().param_kwargs['param1'] == params['param1']
 
 
 class TestWorkflowMulti:
 
     def test_preview_single_flow(self):
-        flow2 = d6tflow.WorkflowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
+        flow2 = d6tflow.WorkflowMulti(params = {'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
                                   task=TaskTrain)
 
         import io
@@ -183,7 +183,7 @@ class TestWorkflowMulti:
 
 
     def test_preview_all_flow(self):
-        flow2 = d6tflow.WorkflowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
+        flow2 = d6tflow.WorkflowMulti(params = {'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
                                   task=TaskTrain)
 
         import io
@@ -200,7 +200,7 @@ class TestWorkflowMulti:
 
     def test_no_default_expect_error(self):
         with pytest.raises(RuntimeError):
-            flow2 = d6tflow.WorkflowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}})
+            flow2 = d6tflow.WorkflowMulti(params = {'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}})
             flow2.run()
 
 
@@ -211,14 +211,14 @@ class TestWorkflowMulti:
 
 
     def test_default_task(self):
-        flow2 = d6tflow.WorkflowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}})
+        flow2 = d6tflow.WorkflowMulti(params = {'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}})
         flow2.set_default(TaskTrain)
         out_class = flow2.get_task()
         type(out_class).__name__ == "TaskTrain"
 
 
     def test_multi_exp_single_flows_single_outputload(self):
-        flow2 = d6tflow.WorkflowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
+        flow2 = d6tflow.WorkflowMulti(params = {'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
                                   task=TaskTrain)
         flow2.run(flow = "experiment1")
 
@@ -227,7 +227,7 @@ class TestWorkflowMulti:
 
 
     def test_multi_exp_all_flows_outputloadall(self):
-        flow2 = d6tflow.WorkflowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
+        flow2 = d6tflow.WorkflowMulti(params = {'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}},
                                   task=TaskTrain)
         flow2.run()
 
@@ -239,7 +239,7 @@ class TestWorkflowMulti:
     def test_multi_get_task(self):
         params2 = {'param1': 2}
         params = {'param1': 1}
-        flow2 = d6tflow.WorkflowMulti({1: params, 2: params2}, task=Task1)
+        flow2 = d6tflow.WorkflowMulti(params = {1: params, 2: params2}, task=Task1)
         assert flow2.get_task(flow=1).param_kwargs['param1'] == 1
         assert flow2.get_task(flow=2).param_kwargs['param1'] == 2
 
@@ -247,7 +247,7 @@ class TestWorkflowMulti:
     def test_output_load_comparing_with_task_run(self):
         params2 = {'param1': 2}
         params = {'param1': 1}
-        flow2 = d6tflow.WorkflowMulti({1: params, 2: params2}, task=Task1)
+        flow2 = d6tflow.WorkflowMulti(params = {1: params, 2: params2}, task=Task1)
 
         flow2.run()
         assert flow2.outputLoad(flow = 1) == Task1(**params).outputLoad()
@@ -257,7 +257,7 @@ class TestWorkflowMulti:
     def test_output_load_all_comparing_with_task_run(self):
         params2 = {'param1': 2}
         params = {'param1': 1}
-        flow2 = d6tflow.WorkflowMulti({1: params, 2: params2}, task=Task1)
+        flow2 = d6tflow.WorkflowMulti(params = {1: params, 2: params2}, task=Task1)
 
         flow2.run()
         outputs = flow2.outputLoadAll()

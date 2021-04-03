@@ -36,3 +36,11 @@ d6tflow.pipes module
     :undoc-members:
     :show-inheritance:
 
+d6tflow.functional module
+----------------------------
+
+.. automodule:: d6tflow.functional
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
