@@ -57,7 +57,7 @@ class TaskData(luigi.Task):
                 'Confirm invalidating task: {} (y/n)'.format(self.__class__.__qualname__))
         else:
             c = 'y'
-        if c == 'y' and self.complete():
+        if c == 'y':# and self.complete():
             if self.persist == ['data']:  # 1 data shortcut
                 self.output().invalidate()
             else:
@@ -190,7 +190,11 @@ class TaskData(luigi.Task):
     def metaSave(self, data):
         self.metadata = data
         path = self._get_meta_path(self)
-        pickle.dump(data, open(path, "wb"))
+        with open(path, "wb") as fh:
+            pickle.dump(data, fh)
+
+    def saveMeta(self, data):
+        self.metaSave(data)
 
     def metaLoad(self):
         if isinstance(self.requires(), dict):

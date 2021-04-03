@@ -195,7 +195,7 @@ def invalidate_upstream(task, confirm=True):
         confirm (bool): confirm operation
 
     """
-    tasks = taskflow_upstream(task, only_complete=True)
+    tasks = taskflow_upstream(task, only_complete=False)
     if len(tasks)==0:
         print('no tasks to invalidate')
         return True
@@ -332,10 +332,10 @@ class Workflow(object):
 
 
     def outputLoad(self, task=None, keys=None, as_dict=False, cached=False):
-        task_inst = self.get_task(task)
+        return self.get_task(task).outputLoad(keys=keys, as_dict=as_dict, cached=cached)
 
-        return task_inst.outputLoad(keys=keys, as_dict=as_dict, cached=cached)
-
+    def outputLoadMeta(self, task=None):
+        return self.get_task(task).outputLoadMeta()
 
     def outputLoadAll(self, task=None, keys=None, as_dict=False, cached=False):
         task_inst = self.get_task(task)
@@ -357,9 +357,12 @@ class Workflow(object):
         return taskflow_downstream(task_inst, task_downstream_inst, confirm)
 
 
+    def reset_upstream(self, task, confirm=True):
+        task_inst = self.get_task(task)
+        return invalidate_upstream(task_inst, confirm)
+
     def set_default(self, task):
         self.default_task = task
-
 
     def get_task(self, task = None):
         if task is None:
@@ -381,7 +384,7 @@ class WorkflowMulti(object):
             self.workflow_objs = {k: Workflow(task=task, params=v) for k, v in self.params.items()}
 
 
-    def run(self,tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, flow = None, **kwargs):
+    def run(self, flow = None, tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, **kwargs):
         if flow is not None:
             return self.workflow_objs[flow].run(tasks=tasks, forced=forced, forced_all=forced_all,
                                            forced_all_upstream=forced_all_upstream, confirm=confirm, workers=workers,
@@ -395,7 +398,7 @@ class WorkflowMulti(object):
         return result
 
 
-    def outputLoad(self, task=None, keys=None, as_dict=False, cached=False, flow = None):
+    def outputLoad(self, flow = None, task=None, keys=None, as_dict=False, cached=False):
         if flow is not None:
             return self.workflow_objs[flow].outputLoad(task, keys, as_dict, cached)
         data = {}
@@ -403,8 +406,16 @@ class WorkflowMulti(object):
             data[exp_name] = self.workflow_objs[exp_name].outputLoad(task, keys, as_dict, cached)
         return data
 
+    def outputLoadMeta(self, flow = None, task=None):
+        if flow is not None:
+            return self.workflow_objs[flow].outputLoadMeta(task)
+        data = {}
+        for exp_name in self.params.keys():
+            data[exp_name] = self.workflow_objs[exp_name].outputLoadMeta(task)
+        return data
 
-    def outputLoadAll(self, task=None, keys=None, as_dict=False, cached=False, flow = None):
+
+    def outputLoadAll(self, flow = None, task=None, keys=None, as_dict=False, cached=False):
         if flow is not None:
             return self.workflow_objs[flow].outputLoadAll(task, keys, as_dict, cached)
         data = {}
@@ -413,14 +424,18 @@ class WorkflowMulti(object):
         return data
 
 
-    def reset(self, task, confirm=True, flow = None):
+    def reset(self, flow = None, task=None, confirm=True):
         if flow is not None:
             return self.workflow_objs[flow].reset(task, confirm)
         return {self.workflow_objs[exp_name].reset(task, confirm) for exp_name in self.params.keys()}
 
+    def reset_upstream(self, flow = None, task=None, confirm=True):
+        if flow is not None:
+            return self.workflow_objs[flow].reset(task, confirm)
+        return {self.workflow_objs[exp_name].reset_upstream(task, confirm) for exp_name in self.params.keys()}
 
 
-    def preview(self, tasks = None, indent='', last=True, show_params=True, clip_params=False, flow = None):
+    def preview(self, flow = None, tasks = None, indent='', last=True, show_params=True, clip_params=False):
         if not isinstance(tasks, (list,)):
             tasks = [tasks]
         if flow is not None:
@@ -437,7 +452,7 @@ class WorkflowMulti(object):
             self.workflow_objs[exp_name].set_default(task)
 
 
-    def get_task(self, task = None, flow = None):
+    def get_task(self, flow = None, task = None):
         if task is None:
             if self.default_task is None:
                 raise RuntimeError('no default tasks set')
