@@ -307,7 +307,7 @@ def test_functional_Flow():
     @flow.step(d6tflow.tasks.TaskCache)
     @flow.requires(get_data0)
     def get_data2(task):
-        df0 = task.inputLoad()
+        df0 = task.inputLoad(as_dict=True)
         df = pd.DataFrame({'a':range(3)})
         task.save({'b1':df,'b2':df0})
 
