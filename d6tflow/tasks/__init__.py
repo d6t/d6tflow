@@ -36,13 +36,13 @@ class TaskData(luigi.Task):
 
     def __init__(self, *args, **kwargs):
         kwargs_ = {k: v for k, v in kwargs.items(
-        ) if k in self.get_param_names()}
+        ) if k in self.get_param_names(include_significant=True)}
         super().__init__(*args, **kwargs_)
 
     @classmethod
     def get_param_values(cls, params, args, kwargs):
         kwargs_ = {k: v for k, v in kwargs.items(
-        ) if k in cls.get_param_names()}
+        ) if k in cls.get_param_names(include_significant=True)}
         return super(TaskData, cls).get_param_values(params, args, kwargs_)
 
     def reset(self, confirm=True):
