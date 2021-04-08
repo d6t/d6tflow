@@ -1,12 +1,17 @@
 import d6tflow
 
-class Task1(d6tflow.tasks.TaskCache):
-
+class Task1(d6tflow.tasks.TaskPickle):
     def run(self):
-        print(self.param_kwargs)
         self.save({1:1})
-        self.saveMeta({1:1})
+class Task2(d6tflow.tasks.TaskPickle):
+    def run(self):
+        self.save({1:1})
 
-d6tflow.set_dir('data/utest')
-print(Task1().output().path)
-print(d6tflow.settings.dir)
+path = 'data/data2/'
+# assert 'data2' in str(Task1(path=path).output().path)
+flow = d6tflow.Workflow(Task1, path=path)
+flow.run()
+assert 'data2' in str(flow.get_task().output().path)
+flow2 = d6tflow.WorkflowMulti(Task1, params={0: {}}, path=path)
+print(flow2.get_task()[0].output().path)
+# assert 'data2' in str(flow.get_task()[0].output().path)

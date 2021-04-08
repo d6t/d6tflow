@@ -457,3 +457,28 @@ def test_dynamic():
     TaskCollector().reset(confirm=False)
     assert not (Task1().complete() and Task2().complete() and TaskCollector().complete())
 
+def tests_params():
+    class Task1(d6tflow.tasks.TaskCache):
+        param = d6tflow.IntParameter(significant=False)
+
+        def run(self):
+            self.save({1: 1})
+
+    Task1(param=1, param2=1) # pass insignifcant and non-existing param
+
+def test_path():
+    class Task1(d6tflow.tasks.TaskPickle):
+        def run(self):
+            self.save({1: 1})
+
+    class Task2(d6tflow.tasks.TaskPickle):
+        def run(self):
+            self.save({1: 1})
+
+    path = 'data/data2/'
+    assert 'data2' in str(Task1(path=path).output().path)
+    flow = d6tflow.Workflow(Task1, path=path)
+    assert 'data2' in str(flow.get_task().output().path)
+    flow2 = d6tflow.WorkflowMulti(Task2, params={0:{}}, path=path)
+    assert 'data2' in str(flow2.get_task()[0].output().path)
+

@@ -1,3 +1,5 @@
+import pickle, pathlib
+
 import luigi
 import luigi.tools.deps
 
@@ -7,8 +9,6 @@ import d6tflow.targets
 import d6tflow.settings as settings
 from d6tflow.cache import data as cache
 import d6tflow.cache
-
-import pickle
 
 
 def _taskpipeoperation(task, fun, funargs=None):
@@ -34,10 +34,11 @@ class TaskData(luigi.Task):
     persist = ['data']
     metadata = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, path=None, **kwargs):
         kwargs_ = {k: v for k, v in kwargs.items(
         ) if k in self.get_param_names(include_significant=True)}
         super().__init__(*args, **kwargs_)
+        self.path = path
 
     @classmethod
     def get_param_values(cls, params, args, kwargs):
@@ -94,6 +95,8 @@ class TaskData(luigi.Task):
         if hasattr(self, 'pipename'):
             import d6tflow.pipes
             dirpath = d6tflow.pipes.get_dirpath(self.pipename)
+        elif self.path is not None:
+            dirpath = pathlib.Path(self.path)
         else:
             dirpath = settings.dirpath
 

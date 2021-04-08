@@ -13,7 +13,7 @@ from luigi.parameter import (
 )
 
 import d6tcollect
-d6tcollect.submit = True
+d6tcollect.submit = False
 
 import d6tflow.targets, d6tflow.tasks, d6tflow.settings
 import d6tflow.utils
@@ -310,8 +310,9 @@ def requires(*tasks_to_require):
 class Workflow(object):
 
 
-    def __init__(self, task = None, params=None):
+    def __init__(self, task = None, params=None, path=None):
         self.params = {} if params is None else params
+        self.params = self.params if path is None else dict(**self.params,**{'path':path})
         self.default_task = task
 
 
@@ -373,13 +374,13 @@ class Workflow(object):
 
 class WorkflowMulti(object):
 
-    def __init__(self, task = None, params = None):
+    def __init__(self, task = None, params = None, path=None):
         self.params = params
         if params is None or len(params.keys())==0:
-            raise Exception("Experiments not defined")
+            raise Exception("Need to pass task parameters or use d6tflow.Workflow")
         self.default_task = task
         if params is not None:
-            self.workflow_objs = {k: Workflow(task=task, params=v) for k, v in self.params.items()}
+            self.workflow_objs = {k: Workflow(task=task, params=v, path=path) for k, v in self.params.items()}
 
 
     def run(self, flow = None, tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, **kwargs):
