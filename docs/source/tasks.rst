@@ -43,33 +43,6 @@ You can define input dependencies by using a `@d6tflow.requires` decorator which
         #[...]
 
 
-Alternatively you can define input dependencies by writing a ``requires()`` function which takes input tasks. You can have no, one or multiple input tasks. This may be required for advanced cases when the decorator shortcut does not work.
-
-.. code-block:: python
-
-    # no dependency
-    class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
-        # leave blank
-
-    # single dependency
-    class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
-
-        def requires(self):
-            return TaskSingleOutput()
-
-    # single dependency with requires decorator
-    @d6tflow.requires(TaskSingleOutput)
-    class TaskSingleInput(d6tflow.tasks.TaskPqPandas):
-        # leave blank
-
-    # multiple dependencies
-    class TaskMultipleInput(d6tflow.tasks.TaskPqPandas):
-
-        def requires(self):
-            return {'data1':TaskSingleOutput1(), 'data2':TaskSingleOutput2()}
-
-**When using the requires function, make sure you add `()` when you define a dependency, so `TaskGetData()` NOT `TaskGetData`.**
-
 
 Process Data
 ------------------------------------------------------------
