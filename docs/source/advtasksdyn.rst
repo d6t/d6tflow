@@ -11,7 +11,7 @@ If you have a fixed set parameters, you can make `requires()` "dynamic".
 .. code-block:: python
 
     class TaskInput(d6tflow.tasks.TaskPqPandas):
-        param = luigi.Parameter()
+        param = d6tflow.Parameter()
         ...
 
     class TaskYieldFixed(d6tflow.tasks.TaskPqPandas):
@@ -63,12 +63,12 @@ This doesn't work yet... It's actually quite rare though that you need that thou
 .. code-block:: python
 
     class TaskA(d6tflow.tasks.TaskCache):
-        param = luigi.IntParameter()
+        param = d6tflow.IntParameter()
         def run(self):
             self.save(self.param)
 
     class TaskB(d6tflow.tasks.TaskCache):
-        param = luigi.IntParameter()
+        param = d6tflow.IntParameter()
 
         def requires(self):
             return TaskA()
