@@ -60,8 +60,9 @@ The function-based workflow example will transform to this:
                 data = scale(data) # # from `def preprocess(data)`
             self.save(data) # save output data
 
-    d6tflow.run(TaskProcess()) # execute task with dependencies
-    data = TaskProcess().output().load() # load output data
+    flow = d6tflow.Workflow(TaskProcess)
+    flow.run() # execute task with dependencies
+    data = flow.outputLoad() # load output data
 
 Learn more about :doc:`Writing and Managing Tasks <../tasks>` and :doc:`Running Workflows <../run>`.
 

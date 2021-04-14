@@ -210,10 +210,11 @@ Once a workflow is run and the task is complete, you can easily load its output 
 
 .. code-block:: python
 
-    df = TaskSingleOutput().output().load()
-    data1 = TaskMultipleOutput().output()['data1'].load()
-    data2 = TaskMultipleOutput().output()['data2'].load()
-    data1, data2 = TaskMultipleOutput().outputLoad()
+    data = flow.outputLoad() # load default task output
+    data = flow.outputLoad(as_dict=True) # useful for multi output
+    data2 = flow.outputLoad(TaskMultipleOutput, as_dict=True) # load another task output
+    data2['data1']
+    data2['data2']
 
 **Before you load output data you need to run the workflow**. See :doc:`run the workflow <../run>`. If a task has not been run, it will show
 
@@ -230,10 +231,18 @@ If you are :doc:`using parameters <../advparam>` this is how you load outputs. M
 
 .. code-block:: python
 
-    df = TaskSingleOutput(param=value).output().load()
-    # or
-    params = dict(param=value)
-    df = TaskSingleOutput(**params).output().load()
+    params = {'default_params':{}, 'use_params':{'preprocess':True}}
+    flow = d6tflow.WorkflowMulti(TaskSingleOutput, params)
+    data = flow.outputLoad() # load default task output
+    data['default_params']
+    data['use_params']
+
+    # multi output
+    data2 = flow.outputLoad(TaskMultipleOutput, as_dict=True) # load another task output
+    data2['default_params']['data1']
+    data2['default_params']['data2']
+    data2['use_params']['data1']
+    data2['use_params']['data2']
 
 
 Putting it all together

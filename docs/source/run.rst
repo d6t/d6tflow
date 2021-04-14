@@ -3,7 +3,7 @@ Running Tasks and Managing Workflows
 
 A workflow object is used to orchestrate tasks and define a task pipeline.
 
-NB: the workflow object is new preferred way of interacting with workflow. Alternatively, :doc:`legacy workflow <../targets>` describes the old way which might help understand better how everything works.
+NB: the workflow object is new preferred way of interacting with workflow. Alternatively, :doc:`legacy workflow <../run_legacy>` describes the old way which might help understand better how everything works.
 
 Define a workflow object
 ------------------------------------------------------------
