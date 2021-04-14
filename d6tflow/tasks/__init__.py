@@ -1,4 +1,5 @@
-import pickle, pathlib
+import pickle
+import pathlib
 
 import luigi
 import luigi.tools.deps
@@ -58,7 +59,7 @@ class TaskData(luigi.Task):
                 'Confirm invalidating task: {} (y/n)'.format(self.__class__.__qualname__))
         else:
             c = 'y'
-        if c == 'y':# and self.complete():
+        if c == 'y':  # and self.complete():
             if self.persist == ['data']:  # 1 data shortcut
                 self.output().invalidate()
             else:
@@ -239,9 +240,13 @@ class TaskData(luigi.Task):
         return dict(zip(tasks, meta))
 
     def _get_meta_path(self, task):
-        # meta_file = f"meta-{task_id}.pickle"
+        if self.path:
+            dirpath = pathlib.Path(self.path)
+        else:
+            dirpath = d6tflow.settings.dirpath
+
         meta_path = task._getpath(
-            d6tflow.settings.dirpath, 'meta'
+            dirpath, 'meta'
         ).with_suffix('.pickle')
         meta_path.parent.mkdir(exist_ok=True, parents=True)
         return meta_path
