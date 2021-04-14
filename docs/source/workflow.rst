@@ -10,7 +10,17 @@ Workflow object can be defined by passing the parameters and the default task fo
 
 .. code-block:: python
 
-    flow = Workflow(params, task=Task1)
+    flow = Workflow(task=Task1, params = params)
+
+
+Defining the flow with just params
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To define a workflow object with just parameters:
+
+.. code-block:: python
+
+    flow = Workflow(params = params)
 
 
 Previewing the flow
@@ -95,7 +105,17 @@ A multi experiment workflow can be defined with multiple flows and separate para
 
 .. code-block:: python
 
-        flow2 = d6tflow.WorkflowMulti({'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}}, task=Task1)
+        flow2 = d6tflow.WorkflowMulti(params = {'experiment1': {'do_preprocess': False}, 'experiment2': {'do_preprocess': True}}, task=Task1)
+
+
+Defining the flow with just params
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To define a workflow object with just parameters:
+
+.. code-block:: python
+
+    flow = WorkflowMulti(params = params)
 
 
 Operations on multi experiment workflow

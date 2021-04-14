@@ -81,18 +81,15 @@ def df2fun(task):
     df4['a'] = df4['a'] * 2 * 2
     task.save({'df2': df2, 'df4': df4})
 
-
+@d6tflow.requires(Task1)
 class Task2(d6tflow.tasks.TaskPqPandas):
     persist = ['df2','df4']
-    def requires(self):
-        return Task1()
     def run(self):
         df2fun(self)
 
+@d6tflow.requires(Task2)
 class Task3(d6tflow.tasks.TaskPqPandas):
     do_preprocess = luigi.BoolParameter(default=True)
-    def requires(self):
-        return Task2()
     def run(self):
         if self.do_preprocess:
             pass
@@ -134,27 +131,24 @@ def test_tasks(cleanup):
             assert dft1.equals(df)
     TaskMultiInput().run()
 
+    @d6tflow.requires(Task1,Task1)
     class TaskMultiInput(d6tflow.tasks.TaskCache):
-        def requires(self):
-            return Task1(), Task1()
         def run(self):
-            dft1, dft2 = self.inputLoad()
-            assert dft1.equals(dft2)
+            data = self.inputLoad()
+            assert data[0].equals(data[1])
     TaskMultiInput().run()
 
+    @d6tflow.requires({1:Task1,2:Task1})
     class TaskMultiInput(d6tflow.tasks.TaskCache):
-        def requires(self):
-            return {1:Task1(), 2:Task1()}
         def run(self):
             input = self.inputLoad()
             assert input[1].equals(input[2])
     TaskMultiInput().run()
 
+    @d6tflow.requires({'in1':Task2,'in2':Task2})
     class TaskMultiInput2(d6tflow.tasks.TaskCache):
-        def requires(self):
-            return {'in1':Task2(), 'in2':Task2()}
         def run(self):
-            input = self.inputLoad(task='in1')
+            input = self.inputLoad(task='in1',as_dict=True)
             assert input['df2'].equals(dfc2) and input['df4'].equals(dfc4)
     TaskMultiInput2().run()
 
@@ -255,21 +249,11 @@ def test_flow():
             self.save(df)
 
     params = dict(multiplier=2)
-    dag = d6tflow.flow(params=params)
+    dag = d6tflow.Workflow(Task3, params=params)
 
     dag.run(forced_all_upstream=True,confirm=False)
-    assert dag.outputLoad('Task1')['a1'].equals(dag.outputLoad('Task2'))
-    dfc = dag.outputLoad('Task3')
-    assert (dfc['b']==dfc['a1']*params['multiplier']).all()
-
-    dag.run('Task3',forced_all_upstream=True,confirm=False) # d6tflow.run(Task3())
-    assert dag.outputLoad('Task1')['a1'].equals(dag.outputLoad('Task2'))
-    dfc = dag.outputLoad('Task3')
-    assert (dfc['b']==dfc['a1']*params['multiplier']).all()
-
-    dag.run(['Task3'],forced_all_upstream=True,confirm=False) # d6tflow.run([Task3()])
-    assert dag.outputLoad('Task1')['a1'].equals(dag.outputLoad('Task2'))
-    dfc = dag.outputLoad('Task3')
+    assert dag.outputLoad(Task1,as_dict=True)['a1'].equals(dag.outputLoad(Task2))
+    dfc = dag.outputLoad(Task3)
     assert (dfc['b']==dfc['a1']*params['multiplier']).all()
 
 def test_multiple_deps_on_input_load():
@@ -289,7 +273,7 @@ def test_multiple_deps_on_input_load():
     @d6tflow.requires(Task1,Task2)
     class Task3(d6tflow.tasks.TaskCache):
         def run(self):
-            data = self.inputLoad()
+            data = self.inputLoad(as_dict=True)
             df1 = data[0]['a1']
             assert df1.equals(data[0]['a2'])
             df2 = data[1]
@@ -323,7 +307,7 @@ def test_functional_Flow():
     @flow.step(d6tflow.tasks.TaskCache)
     @flow.requires(get_data0)
     def get_data2(task):
-        df0 = task.inputLoad()
+        df0 = task.inputLoad(as_dict=True)
         df = pd.DataFrame({'a':range(3)})
         task.save({'b1':df,'b2':df0})
 
@@ -331,7 +315,7 @@ def test_functional_Flow():
     @flow.requires({"a":get_data1, "b":get_data2})
     @flow.persists(['aa'])
     def use_data(task):
-        df0 = task.inputLoad()
+        df0 = task.inputLoad(as_dict=True)
         df = pd.DataFrame({'a':range(3)})
         assert df0["a"]["a1"].equals(df) and df0["a"]["a2"].equals(df)
         assert df0["b"]["b1"].equals(df) and df0["b"]["b2"]["a1"].equals(df)
@@ -472,4 +456,29 @@ def test_dynamic():
     assert TaskCollector().outputLoad()[1][0].equals(Task2().outputLoad()[0])
     TaskCollector().reset(confirm=False)
     assert not (Task1().complete() and Task2().complete() and TaskCollector().complete())
+
+def tests_params():
+    class Task1(d6tflow.tasks.TaskCache):
+        param = d6tflow.IntParameter(significant=False)
+
+        def run(self):
+            self.save({1: 1})
+
+    Task1(param=1, param2=1) # pass insignifcant and non-existing param
+
+def test_path():
+    class Task1(d6tflow.tasks.TaskPickle):
+        def run(self):
+            self.save({1: 1})
+
+    class Task2(d6tflow.tasks.TaskPickle):
+        def run(self):
+            self.save({1: 1})
+
+    path = 'data/data2/'
+    assert 'data2' in str(Task1(path=path).output().path)
+    flow = d6tflow.Workflow(Task1, path=path)
+    assert 'data2' in str(flow.get_task().output().path)
+    flow2 = d6tflow.WorkflowMulti(Task2, params={0:{}}, path=path)
+    assert 'data2' in str(flow2.get_task()[0].output().path)
 
