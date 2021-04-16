@@ -55,7 +55,8 @@ class TaskData(luigi.Task):
         """
         if confirm:
             c = input(
-                'Confirm invalidating task: {} (y/n)'.format(self.__class__.__qualname__))
+                'Confirm invalidating task: {} (y/n). PS You can disable this message by passing confirm=False'.format(
+                    self.__class__.__qualname__))
         else:
             c = 'y'
         if c == 'y':# and self.complete():
