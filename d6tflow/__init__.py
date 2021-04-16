@@ -376,6 +376,8 @@ class WorkflowMulti(object):
 
     def __init__(self, task = None, params = None, path=None):
         self.params = params
+        if params is not None and type(params) != dict:
+            raise Exception("Params has to be a dictionary with key defining the flow name")
         if params is None or len(params.keys())==0:
             raise Exception("Need to pass task parameters or use d6tflow.Workflow")
         self.default_task = task
