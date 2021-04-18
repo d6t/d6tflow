@@ -278,14 +278,31 @@ class Workflow:
                 f"The function {name} has not been run yet! Please run the function using WorkflowObject.run()")
 
     def reset(self, func_to_reset, params=None, *args, **kwargs):
-        func_params = params if params else {} 
+        """Resets a particular function. Use with `params` to reset function with the given parameters.
+        If `params` is not used, `reset(func)` will reset the function with all the parameters run thus far"""
+        func_params = params
         name = func_to_reset if isinstance(
             func_to_reset, str) else func_to_reset.__name__
         if func_params:
             return self.steps[name](**func_params).reset(*args, **kwargs)
-        
-    def reset2(self, func_to_reset, params=None, *args, **kwargs):
-        func_params = params
+        else:
+            all_params = self.params_used.get(name, None)
+            if all_params:
+                return [
+                    self.steps[name](**params).reset(*args, **kwargs)
+                    for params in self.params_used[name]
+                ]
+
+    def resetAll(self, *args, **kwargs):
+        """Resets all functions that are attached to the workflow object that have run atleast once."""
+        for name in self.steps:
+            self.reset(name, params=None, *args, **kwargs)
+
+    def delete(self, func_to_reset, *args, **kwargs):
+        """Possibly dangerous! `delete(func)` will delete *all files* in the `data/func` directory of the given func.
+        Useful if you want to delete all function related outputs.
+        Consider using `reset(func, params)` to reset a specific func
+        """
         name = func_to_reset if isinstance(
             func_to_reset, str) else func_to_reset.__name__
         task = self.steps[name]()
@@ -298,7 +315,11 @@ class Workflow:
         for f in path.parent.glob('*'):
             f.unlink()
 
-    def resetAll(self, *args, **kwargs):
+    def deleteAll(self, *args, **kwargs):
+        """Possibly dangerous! Will delete all files in the `data/` directory of the functions attached to the workflow object.
+        Useful if you want to delete all outputs even the once previously run.
+        Consider using `resetAll()` if you want to only reset the functions with params you have run thus far
+        """
         for task_cls in self.steps:
             task = self.steps[task_cls]()
-            self.reset2(task.task_family)
+            self.delete(task.task_family)
