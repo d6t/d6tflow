@@ -278,23 +278,27 @@ class Workflow:
                 f"The function {name} has not been run yet! Please run the function using WorkflowObject.run()")
 
     def reset(self, func_to_reset, params=None, *args, **kwargs):
-        func_params = params
+        func_params = params if params else {} 
         name = func_to_reset if isinstance(
             func_to_reset, str) else func_to_reset.__name__
         if func_params:
             return self.steps[name](**func_params).reset(*args, **kwargs)
+        
+    def reset2(self, func_to_reset, params=None, *args, **kwargs):
+        func_params = params
+        name = func_to_reset if isinstance(
+            func_to_reset, str) else func_to_reset.__name__
+        task = self.steps[name]()
+        if task.path:
+            dirpath = pathlib.Path(task.path)
         else:
-            task = self.steps[name]()
-            if task.path:
-                dirpath = pathlib.Path(task.path)
-            else:
-                dirpath = d6tflow.settings.dirpath
+            dirpath = d6tflow.settings.dirpath
 
-            path = task._getpath(dirpath, [])
-            for f in path.parent.glob('*'):
-                f.unlink()
+        path = task._getpath(dirpath, [])
+        for f in path.parent.glob('*'):
+            f.unlink()
 
     def resetAll(self, *args, **kwargs):
         for task_cls in self.steps:
             task = self.steps[task_cls]()
-            self.reset(task.task_family)
+            self.reset2(task.task_family)

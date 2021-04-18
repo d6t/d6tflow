@@ -26,10 +26,8 @@ def usedata(task):
     df3['b']=df3['a']*task.multiplier # use task parameter
     task.save(df3)
 
-
 flow.add_global_params(multiplier=d6tflow.IntParameter(default=0))
 use_params = {'exp1':{'multiplier':40}, 'exp2': {'multiplier':42}}
-
 
 flow.preview(usedata, params=use_params)
 flow.run(usedata, multi_params=use_params, forced_all_upstream=True, confirm=False)
@@ -42,4 +40,5 @@ flow.run(usedata, params=use_params, forced_all_upstream=True, confirm=False)
 
 print(flow.outputLoad(usedata))
 print(flow.outputLoadAll(usedata, as_dict=True))
+
 flow.resetAll(confirm=False)
