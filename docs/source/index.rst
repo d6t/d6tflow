@@ -54,7 +54,7 @@ User Guide
    advtasksdyn
    advparam
    modules
-   functional tasks
+   functional_tasks
 
 
 API Docs
