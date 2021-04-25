@@ -13,7 +13,7 @@ from luigi.parameter import (
 )
 
 import d6tcollect
-d6tcollect.submit = False
+d6tcollect.submit = True
 
 import d6tflow.targets, d6tflow.tasks, d6tflow.settings
 import d6tflow.utils
@@ -460,5 +460,5 @@ class WorkflowMulti(object):
             else:
                 task = self.default_task
         if flow is None:
-            return {exp_name: task(**self.params[exp_name]) for exp_name in self.params.keys()}
-        return task(**self.params[flow])
+            return {exp_name: self.workflow_objs[exp_name].get_task(task) for exp_name in self.params.keys()}
+        return self.workflow_objs[flow].get_task(task)

@@ -18,7 +18,7 @@ Code is below, interactive example available on **[mybinder](http://tiny.cc/d6tf
 
 
 import d6tflow
-import sklearn, sklearn.datasets, sklearn.svm, sklearn.linear_model
+import sklearn, sklearn.datasets, sklearn.ensemble, sklearn.linear_model
 import pandas as pd
 
 # define workflow tasks
