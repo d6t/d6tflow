@@ -29,8 +29,8 @@ class ModelTrain(d6tflow.tasks.TaskPickle):
 
         # fit and save model with training score
         model.fit(df_trainX, df_trainY)
-        self.save(model)
-        self.saveMeta({'score': model.score(df_trainX, df_trainY)})
+        self.save(model)  # persist/cache model
+        self.saveMeta({'score': model.score(df_trainX, df_trainY)})  # save model score
 
 # goal: compare performance of two models
 # define workflow manager

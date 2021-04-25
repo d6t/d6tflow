@@ -72,10 +72,10 @@ class GetData(d6tflow.tasks.TaskPqPandas):
         ds = sklearn.datasets.load_boston()
         df_trainX = pd.DataFrame(ds.data, columns=ds.feature_names)
         df_trainY = pd.DataFrame(ds.target, columns=['target'])
-        self.save({'x': df_trainX, 'y': df_trainY})  # persist/cache training data
+        self.save({'x': df_trainX, 'y': df_trainY}) # persist/cache training data
 
 
-# train models to compare
+# train different models to compare
 @d6tflow.requires(GetData)  # define dependency
 class ModelTrain(d6tflow.tasks.TaskPickle):
     model = d6tflow.Parameter()  # parameter for model selection
@@ -90,8 +90,8 @@ class ModelTrain(d6tflow.tasks.TaskPickle):
 
         # fit and save model with training score
         model.fit(df_trainX, df_trainY)
-        self.save(model)
-        self.saveMeta({'score': model.score(df_trainX, df_trainY)})
+        self.save(model)  # persist/cache model
+        self.saveMeta({'score': model.score(df_trainX, df_trainY)})  # save model score
 
 # goal: compare performance of two models
 # define workflow manager
@@ -100,23 +100,18 @@ flow.reset_upstream(confirm=False) # DEMO ONLY: force re-run
 flow.run()  # execute model training including all dependencies
 
 '''
-
+===== Execution Summary =====
 Scheduled 2 tasks of which:
 * 2 ran successfully:
     - 1 GetData()
     - 1 ModelTrain(model=ols)
-
-# To run 2nd model, don't need to re-run all tasks, only the ones that changed
-Scheduled 2 tasks of which:
-* 1 complete ones were encountered:
-    - 1 GetData()
-* 1 ran successfully:
-    - 1 ModelTrain(model=gbm)
+This progress looks :) because there were no failed tasks or missing dependencies
 '''
 
 scores = flow.outputLoadMeta()  # load model scores
 print(scores)
 # {'model1': {'score': 0.7406426641094095}, 'gbm': {'model2': 0.9761405838418584}}
+
 
 ```
 
