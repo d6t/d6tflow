@@ -21,7 +21,7 @@ import d6tflow
 import sklearn, sklearn.datasets, sklearn.svm, sklearn.linear_model
 import pandas as pd
 
-# define workflow
+# define workflow tasks
 class GetData(d6tflow.tasks.TaskPqPandas):  # save dataframe as parquet
 
     def run(self):
@@ -61,11 +61,13 @@ class ModelTrain(d6tflow.tasks.TaskPickle): # save output as pickle
 params_model1 = {'do_preprocess':True, 'model':'ols'}
 params_model2 = {'do_preprocess':False, 'model':'gbm'}
 
-# run workflow
+# define workflow manager
 flow = d6tflow.WorkflowMulti(ModelTrain, {'ols':params_model1, 'gbm':params_model2})
 flow.reset_upstream(confirm=False) # force re-run
 print(flow.preview('ols'))
 
+# intelligently figures out which part of the workflow need to run for each model
+# for example when training model 2, GetData() does not need to run again
 flow.run()
 '''
 Scheduled 3 tasks of which:
