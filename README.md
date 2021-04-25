@@ -1,6 +1,6 @@
 # Databolt Flow
 
-For data scientists and data engineers, `d6tflow` is a python library which makes building complex data science workflows easy, fast and intuitive. It is built on top of workflow manager luigi but unlike luigi it is optimized for data science workflows.
+For data scientists and data engineers, `d6tflow` is a python library which makes building complex data science workflows easy, fast and intuitive. It is **primarily designed for data scientists to build better models faster**. For data engineers, it can also be a lightweight alternative and help productionize data science models faster. Unlike other data pipeline/workflow solutions, `d6tflow` focuses on managing data science research workflows instead of managing production data pipelines. 
 
 ## Why use d6tflow?
 
