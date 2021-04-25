@@ -12,11 +12,6 @@ The workflow involves chaining together parameterized tasks which pass multiple 
 
 `d6tflow` to the rescue! **With d6tflow you can easily chain together complex data flows and execute them. You can quickly load input and output data for each task.** It makes your workflow very clear and intuitive.
 
-#### When to use d6tflow?
-
-* Data engineering: when you prepare and analyze data with pandas or dask. That is you load, filter, transform, join data
-* Data science: when you analyze data with ANY ML library including sklearn, pytorch, keras. That is you perform EDA, feature engineering, model training and evaluation
-
 #### Read more at:  
 [4 Reasons Why Your Machine Learning Code is Probably Bad](https://github.com/d6t/d6t-python/blob/master/blogs/reasons-why-bad-ml-code.rst)  
 [How d6tflow is different from airflow/luigi](https://github.com/d6t/d6t-python/blob/master/blogs/datasci-dags-airflow-meetup.md)
@@ -24,128 +19,133 @@ The workflow involves chaining together parameterized tasks which pass multiple 
 ![Badge](https://www.kdnuggets.com/images/tkb-1904-p.png "Badge")
 ![Badge](https://www.kdnuggets.com/images/tkb-1902-g.png "Badge")
 
+## When to use d6tflow?
+
+* Data science: you want to build better models faster. Your workflow is EDA, feature engineering, model training and evaluation. d6tflow works with ANY ML library including sklearn, pytorch, keras
+* Data engineering: you want to build robust data pipelines using a lightweight yet powerful library. You workflow is load, filter, transform, join data in pandas, dask or pyspark.
+
 ## What can d6tflow do for you?
 
+* Data science  
+	* Experiment management: easily manage workflows that compare different models to find the best one
+	* Scalable workflows: build an efficient data workflow that support rapid prototyping and iterations
+	* Cache data: easily save/load intermediary calculations to reduce model training time
+	* Model deployment: d6tflow workflows are easier to deploy to production
 * Data engineering  
 	* Build a data workflow made up of tasks with dependencies and parameters
-	* Check task dependencies and their execution status
+	* Visualize task dependencies and their execution status
 	* Execute tasks including dependencies
 	* Intelligently continue workflows after failed tasks
 	* Intelligently rerun workflow after changing parameters, code or data
-	* Intelligently manage parameters between dependencies
-	* Save task output to Parquet, CSV, JSON, pickle and in-memory
-	* Load task output to pandas dataframe and python objects
 	* Quickly share and hand off output data to others
-* Data science  
-	* Scalable workflows: build an efficient data workflow made up of tasks with dependencies and parameters
-	* Experiment tracking: compare model performance with different preprocessing and model selection options
-	* Model deployment: d6tflow workflows are easier to deploy to production
 
 
 ## Installation
 
-Install with `pip install d6tflow`. To update, run `pip install d6tflow -U --no-deps`.
+Install with `pip install d6tflow`. To update, run `pip install d6tflow -U`.
 
-You can also clone the repo and run `pip install .`
+If you are behind an enterprise firewall, you can also clone/download the repo and run `pip install .`
 
 **Python3 only** You might need to call `pip3 install d6tflow` if you have not set python 3 as default.
 
 To install latest DEV `pip install git+git://github.com/d6t/d6tflow.git` or upgrade `pip install git+git://github.com/d6t/d6tflow.git -U --no-deps`
 
-## Example 1: Introduction
+## Example: Model Comparison
 
-This is a minial example. Be sure to check out the ML workflow example below.
+Below is an introductory example that gets training data, trains two models and compares their performance.  
+
+**[See the full ML workflow example here](http://tiny.cc/d6tflow-start-example)**  
+**[Interactive mybinder jupyter notebook](http://tiny.cc/d6tflow-start-interactive)**
 
 ```python
 
 import d6tflow
+import sklearn.datasets, sklearn.ensemble, sklearn.linear_model
 import pandas as pd
 
-# define 2 tasks that load raw data
-class Task1(d6tflow.tasks.TaskPqPandas):
-    
+
+# get training data and save it
+class GetData(d6tflow.tasks.TaskPqPandas):
+    persist = ['x','y']
+
     def run(self):
-        df = pd.DataFrame({'a':range(3)})
-        self.save(df) # quickly save dataframe
+        ds = sklearn.datasets.load_boston()
+        df_trainX = pd.DataFrame(ds.data, columns=ds.feature_names)
+        df_trainY = pd.DataFrame(ds.target, columns=['target'])
+        self.save({'x': df_trainX, 'y': df_trainY})  # persist/cache training data
 
-class Task2(Task1):
-    pass
 
-# define another task that depends on data from task1 and task2
-@d6tflow.requires({'input1':Task1,'input2':Task2})
-class Task3(d6tflow.tasks.TaskPqPandas):
-    multiplier = d6tflow.IntParameter(default=2)
-    
+# train models to compare
+@d6tflow.requires(GetData)  # define dependency
+class ModelTrain(d6tflow.tasks.TaskPickle):
+    model = d6tflow.Parameter()  # parameter for model selection
+
     def run(self):
-        df1 = self.input()['input1'].load() # quickly load input data
-        df2 = self.input()['input2'].load() # quickly load input data
-        df = df1.join(df2, lsuffix='1', rsuffix='2')
-        df['b']=df['a1']*self.multiplier # use task parameter
-        self.save(df)
+        df_trainX, df_trainY = self.inputLoad()  # quickly load input data
 
-# Execute task including all its dependencies
-flow = d6tflow.Workflow(Task3)
-flow.run()
-'''
-* 3 ran successfully:
-    - 1 Task1()
-    - 1 Task2()
-    - 1 Task3(multiplier=2)
-'''
+        if self.model=='ols':  # select model based on parameter
+            model = sklearn.linear_model.LinearRegression()
+        elif self.model=='gbm':
+            model = sklearn.ensemble.GradientBoostingRegressor()
 
-# quickly load output data. Task1().outputLoad() also works
-flow.outputLoad() 
-'''
-   a1  a2  b
-0   0   0  0
-1   1   1  2
-2   2   2  4
+        # fit and save model with training score
+        model.fit(df_trainX, df_trainY)
+        self.save(model)
+        self.saveMeta({'score': model.score(df_trainX, df_trainY)})
+
+# goal: compare performance of two models
+# define workflow manager
+flow = d6tflow.WorkflowMulti(ModelTrain, {'model1':{'model':'ols'}, 'model2':{'model':'gbm'}})
+flow.reset_upstream(confirm=False) # DEMO ONLY: force re-run
+flow.run()  # execute model training including all dependencies
+
 '''
 
-# Intelligently rerun workflow after changing parameters
-flow2 = d6tflow.Workflow(Task3, {'multiplier':3})
-flow2.preview()
+Scheduled 2 tasks of which:
+* 2 ran successfully:
+    - 1 GetData()
+    - 1 ModelTrain(model=ols)
+
+# To run 2nd model, don't need to re-run all tasks, only the ones that changed
+Scheduled 2 tasks of which:
+* 1 complete ones were encountered:
+    - 1 GetData()
+* 1 ran successfully:
+    - 1 ModelTrain(model=gbm)
 '''
-└─--[Task3-{'multiplier': '3'} (PENDING)] => this changed and needs to run
-   |--[Task1-{} (COMPLETE)] => this doesn't change and doesn't need to rerun
-   └─--[Task2-{} (COMPLETE)] => this doesn't change and doesn't need to rerun
-'''
+
+scores = flow.outputLoadMeta()  # load model scores
+print(scores)
+# {'model1': {'score': 0.7406426641094095}, 'gbm': {'model2': 0.9761405838418584}}
 
 ```
 
-## Example 2: Comparing model performance in ML Workflow
+## Example Library
 
-Below is sample output for a machine learning workflow. The goal is to efficiently compare the performance of two ML models.  
-
-**[See the full example here](http://tiny.cc/d6tflow-start-example)**  
-**[Interactive mybinder jupyter notebook example](http://tiny.cc/d6tflow-start-interactive)**
-
-## Example 3: Turn functions into workflows
-
-Alternatively, chain together functions into a workflow and get the power of d6tflow with only little change in code. **[Jupyter notebook example](https://github.com/d6t/d6tflow/blob/master/docs/example-functional.ipynb)**
+* [Minimal example](https://github.com/d6t/d6tflow/blob/master/docs/example-minimal.py)
+* [Rapid Prototyping for Quantitative Investing with d6tflow](https://github.com/d6tdev/d6tflow-binder-interactive/blob/master/example-trading.ipynb) 
+* Chain together functions into a workflow and get the power of d6tflow with only little change in code. **[Jupyter notebook example](https://github.com/d6t/d6tflow/blob/master/docs/example-functional.ipynb)**
 
 ## Documentation
 
 Library usage and reference https://d6tflow.readthedocs.io
 
-Real-life project template https://github.com/d6t/d6tflow-template
+## Getting started resources
 
 Transition to d6tflow from typical scripts [5 Step Guide to Scalable Deep Learning Pipelines with d6tflow](https://htmlpreview.github.io/?https://github.com/d6t/d6t-python/blob/master/blogs/blog-20190813-d6tflow-pytorch.html)
 
-
-## d6tpipe Integration
-
-To quickly share workflow outputs, we recommend you make use of [d6tpipe](https://github.com/d6t/d6tpipe). See [Sharing Workflows and Outputs](https://d6tflow.readthedocs.io/en/latest/collaborate.html).
+Real-life project template https://github.com/d6t/d6tflow-template
 
 ## Pro version
 
 Additional features:  
+* Team sharing of workflows and data
 * Integrations for enterprise and cloud storage (SQL, S3)
-* Integrations for distributed copmute (dask, pyspark)
-* Automatically detect data changes
-* Advanced machine learning features
+* Integrations for distributed compute (dask, pyspark)
+* Integrations for cloud execution
+* Workflow deployment and scheduling
 
-[Request demo](https://pipe.databolt.tech/gui/request-premium/)
+[Schedule demo](https://calendly.com/databolt/30min)
 
 ## Accelerate Data Science
 

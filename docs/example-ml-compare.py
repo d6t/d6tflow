@@ -1,8 +1,9 @@
+
 import d6tflow
 import sklearn, sklearn.datasets, sklearn.ensemble, sklearn.linear_model
 import pandas as pd
 
-# define workflow
+# define workflow tasks
 class GetData(d6tflow.tasks.TaskPqPandas):  # save dataframe as parquet
 
     def run(self):
@@ -42,89 +43,42 @@ class ModelTrain(d6tflow.tasks.TaskPickle): # save output as pickle
 params_model1 = {'do_preprocess':True, 'model':'ols'}
 params_model2 = {'do_preprocess':False, 'model':'gbm'}
 
-# run workflow
+# define workflow manager
 flow = d6tflow.WorkflowMulti(ModelTrain, {'ols':params_model1, 'gbm':params_model2})
 flow.reset_upstream(confirm=False) # force re-run
 print(flow.preview('ols'))
 
+# intelligently figures out which part of the workflow need to run for each model
+# for example when training model 2, GetData() does not need to run again
 flow.run()
+'''
+Scheduled 3 tasks of which:
+* 3 ran successfully:
+    - 1 GetData()
+    - 1 ModelData(do_preprocess=True)
+    - 1 ModelTrain(do_preprocess=True, model=ols)
+
+# To run 2nd model, don't need to re-run all tasks, only the ones that changed
+Scheduled 3 tasks of which:
+* 1 complete ones were encountered:
+    - 1 GetData()
+* 2 ran successfully:
+    - 1 ModelData(do_preprocess=False)
+    - 1 ModelTrain(do_preprocess=False, model=gbm)
+
+'''
 
 data = flow.outputLoadAll()
 
 scores = flow.outputLoadMeta()
 print(scores)
+# {'ols': {'score': 0.7406426641094095}, 'gbm': {'score': 0.9761405838418584}}
 
 # get training data and models
 data_train = flow.outputLoad(task=ModelData)
 models = flow.outputLoad(task=ModelTrain)
 
 print(models['ols'].score(data_train['ols'].drop('y',1), data_train['ols']['y']))
+# 0.7406426641094095
 print(models['gbm'].score(data_train['gbm'].drop('y',1), data_train['gbm']['y']))
-quit()
-
-'''
-===== Luigi Execution Summary =====
-
-Scheduled 3 tasks of which:
-* 3 ran successfully:
-    - 1 TaskGetData()
-    - 1 TaskPreprocess(do_preprocess=False)
-    - 1 TaskTrain(do_preprocess=False, model=ols)
-'''
-
-# Intelligently rerun workflow after changing parameters
-d6tflow.preview(TaskTrain(**params_model2))
-
-'''
-└─--[TaskTrain-{'do_preprocess': 'False'} (PENDING)]
-   └─--[TaskPreprocess-{'do_preprocess': 'False'} (PENDING)]
-      └─--[TaskGetData-{} (COMPLETE)] => this doesn't change and doesn't need to rerun
-'''
-
-# run workflow for model 2
-d6tflow.run(TaskTrain(**params_model2))
-
-# compare results from new model
-# Load task output to pandas dataframe and model object for model evaluation
-
-model1 = TaskTrain(**params_model1).output().load()
-df_train = TaskPreprocess(**params_model1).output().load()
-print(model1.score(df_train.drop('y',1), df_train['y']))
-# 0.987
-
-model2 = TaskTrain(**params_model2).output().load()
-df_train = TaskPreprocess(**params_model2).output().load()
-print(model2.score(df_train.drop('y',1), df_train['y']))
-# 0.922
-
-quit()
-
-# model comparison
-df_train = ModelEval(**params).outputLoad()
-print('insample errors')
-print('naive mean',mean_squared_error(df_train[cfg_col_Y],df_train['target_naive1']))
-print('ols',mean_squared_error(df_train[cfg_col_Y],df_train['target_ols']))
-print('gbm',mean_squared_error(df_train[cfg_col_Y],df_train['target_lgbm']))
-
-print('cv errors')
-model_ols = ModelTrainOLS(**params).outputLoad()
-mod_lgbm = ModelTrainLGBM(**params).outputLoad()
-df_trainX, df_trainY = DataTrain(**params).outputLoad()
-print('ols',-cross_validate(model_ols, df_trainX, df_trainY, return_train_score=False, scoring=('r2', 'neg_mean_squared_error'), cv=10)['test_neg_mean_squared_error'].mean())
-print('gbm',-cross_validate(mod_lgbm, df_trainX, df_trainY, return_train_score=False, scoring=('r2', 'neg_mean_squared_error'), cv=10)['test_neg_mean_squared_error'].mean())
-quit()
-# single model experiments
-experiments = {'max_depth':1,'max_depth':2}
-for experiment in experiments:
-    print('cv errors')
-    mod_lgbm = ModelTrainLGBM(**params).outputLoad()
-    df_trainX, df_trainY = DataTrain(**params).outputLoad()
-    print('gbm',-cross_validate(mod_lgbm, df_trainX, df_trainY, return_train_score=False, scoring=('r2', 'neg_mean_squared_error'), cv=10)['test_neg_mean_squared_error'].mean())
-
-# multi model experiments
-experiments = {} # ?????? add both lgbm and ols parameters?
-for experiment in experiments:
-    print('cv errors')
-    mod_lgbm = ModelTrainLGBM(**params).outputLoad()
-    df_trainX, df_trainY = DataTrain(**params).outputLoad()
-    print('gbm',-cross_validate(mod_lgbm, df_trainX, df_trainY, return_train_score=False, scoring=('r2', 'neg_mean_squared_error'), cv=10)['test_neg_mean_squared_error'].mean())
+# 0.9761405838418584
