@@ -14,7 +14,7 @@ class ModelTrain(d6tflow.tasks.TaskPickle):
     model = d6tflow.Parameter(default='ols')  # parameter for model selection
 
     def run(self):
-        data = self.inputLoad()
+        data = self.inputLoad() # quickly load training data
 
         if self.model=='regression':
             # [...]
