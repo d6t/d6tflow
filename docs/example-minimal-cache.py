@@ -1,4 +1,4 @@
-import d6tflow, luigi
+import d6tflow
 import pandas as pd
 
 # define 2 tasks that load raw data
