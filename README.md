@@ -120,11 +120,68 @@ print(scores)
 
 ```
 
+
 ## Example Library
 
 * [Minimal example](https://github.com/d6t/d6tflow/blob/master/docs/example-minimal.py)
 * [Rapid Prototyping for Quantitative Investing with d6tflow](https://github.com/d6tdev/d6tflow-binder-interactive/blob/master/example-trading.ipynb) 
 * Chain together functions into a workflow and get the power of d6tflow with only little change in code. **[Jupyter notebook example](https://github.com/d6t/d6tflow/blob/master/docs/example-functional.ipynb)**
+Alternatively, chain together functions into a workflow and get the power of d6tflow with only little change in code. **[Jupyter notebook example](https://github.com/d6t/d6tflow/blob/master/docs/example-functional.ipynb)**
+
+## Example: Functional Workflow
+``` python
+import pandas as pd
+
+import d6tflow
+from d6tflow.functional import Workflow
+
+flow = Workflow()
+
+
+@flow.task(d6tflow.tasks.TaskPqPandas)
+def Task1(task):
+    df = pd.DataFrame({'a': range(3)})
+    task.save(df)
+
+
+@flow.task(d6tflow.tasks.TaskPqPandas)
+def Task2(task):
+    df = pd.DataFrame({'b': range(3)})
+    task.save(df)
+
+
+@flow.task(d6tflow.tasks.TaskPqPandas)
+@flow.params(multiplier=d6tflow.IntParameter(default=2))
+@flow.requires({'input1': Task1, 'input2': Task2})
+def Task3(task):
+    df1 = task.input()['input1'].load()  # quickly load input data
+    df2 = task.input()['input2'].load()  # quickly load input data
+    df = df1.join(df2, lsuffix='1', rsuffix='2')
+    df['c'] = df['a'] * task.multiplier  # use task parameter
+    task.save(df)
+
+
+flow.run(Task3)
+flow.outputLoad(Task3)
+'''
+   a  b  c
+0  0  0  0
+1  1  1  2
+2  2  2  4
+'''
+
+# You can rerun the flow with different parameters
+flow.run(Task3, params={'multiplier': 3})
+flow.outputLoad(Task3)
+
+'''
+   a  b  c
+0  0  0  0
+1  1  1  3
+2  2  2  6
+'''
+```
+
 
 ## Documentation
 
