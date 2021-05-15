@@ -244,6 +244,14 @@ class TestWorkflowMulti:
         assert flow2.get_task(flow=2).param_kwargs['param1'] == 2
 
 
+    def test_multi_get_task_with_list_params(self):
+        params2 = {'param1': 2}
+        params = {'param1': 1}
+        flow2 = d6tflow.WorkflowMulti(params = [params, params2], task=Task1)
+        assert flow2.get_task(flow=0).param_kwargs['param1'] == 1
+        assert flow2.get_task(flow=1).param_kwargs['param1'] == 2
+
+
     def test_output_load_comparing_with_task_run(self):
         params2 = {'param1': 2}
         params = {'param1': 1}
