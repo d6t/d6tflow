@@ -308,7 +308,9 @@ def requires(*tasks_to_require):
 
 
 class Workflow(object):
-
+    """
+    The class is used to orchestrate tasks and define a task pipeline
+    """
 
     def __init__(self, task = None, params=None, path=None):
         self.params = {} if params is None else params
@@ -317,6 +319,12 @@ class Workflow(object):
 
 
     def preview(self, tasks=None, indent='', last=True, show_params=True, clip_params=False):
+        """
+        Preview task flows with the workflow parameters
+
+        Args:
+            tasks (class, list): task class or list of tasks class
+        """
         if not isinstance(tasks, (list,)):
             tasks = [tasks]
         tasks_inst = [self.get_task(x) for x in tasks]
@@ -324,6 +332,21 @@ class Workflow(object):
 
 
     def run(self,tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, **kwargs):
+        """
+        Run tasks with the workflow parameters. See luigi.build for additional details
+
+        Args:
+            tasks (class, list): task class or list of tasks class
+            forced (list): list of forced tasks
+            forced_all (bool): force all tasks
+            forced_all_upstream (bool): force all tasks including upstream
+            confirm (list): confirm invalidating tasks
+            workers (int): number of workers
+            abort (bool): on errors raise exception
+            execution_summary (bool): print execution summary
+            kwargs: keywords to pass to luigi.build
+
+        """
         if not isinstance(tasks, (list,)):
             tasks = [tasks]
         tasks_inst = [self.get_task(x) for x in tasks]
@@ -331,12 +354,36 @@ class Workflow(object):
 
 
     def outputLoad(self, task=None, keys=None, as_dict=False, cached=False):
+        """
+        Load output from task with the workflow parameters
+
+        Args:
+            task (class): task class
+            keys (list): list of data to load
+            as_dict (bool): cache data in memory
+            cached (bool): cache data in memory
+
+        Returns: list or dict of all task output
+        """
         return self.get_task(task).outputLoad(keys=keys, as_dict=as_dict, cached=cached)
+
 
     def outputLoadMeta(self, task=None):
         return self.get_task(task).outputLoadMeta()
 
+
     def outputLoadAll(self, task=None, keys=None, as_dict=False, cached=False):
+        """
+        Load all output from task with the workflow parameters
+
+        Args:
+            task (class): task class
+            keys (list): list of data to load
+            as_dict (bool): cache data in memory
+            cached (bool): cache data in memory
+
+        Returns: list or dict of all task output
+        """
         task_inst = self.get_task(task)
         data_dict = {}
         tasks = taskflow_upstream(task_inst)
@@ -351,6 +398,16 @@ class Workflow(object):
 
 
     def reset_downstream(self, task, task_downstream, confirm=True):
+        """
+        Invalidate all downstream tasks in a flow.
+
+        For example, you have 3 dependant tasks. Normally you run Task3 but you've changed parameters for Task1. By invalidating Task3 it will check the full DAG and realize Task1 needs to be invalidated and therefore Task2 and Task3 also.
+
+        Args:
+            task (obj): task to invalidate. This should be an downstream task for which you want to check downstream dependencies for invalidation conditions
+            task_downstream (obj): downstream task target
+            confirm (bool): confirm operation
+        """
         task_inst = self.get_task(task)
         task_downstream_inst = self.get_task(task_downstream)
         return taskflow_downstream(task_inst, task_downstream_inst, confirm)
@@ -360,10 +417,26 @@ class Workflow(object):
         task_inst = self.get_task(task)
         return invalidate_upstream(task_inst, confirm)
 
+
     def set_default(self, task):
+        """
+        Set default task for the workflow object
+
+        Args:
+            task(obj) The task to be set as a default task
+        """
         self.default_task = task
 
+
     def get_task(self, task = None):
+        """
+        Get task with the workflow parameters
+
+        Args:
+            task(class)
+
+        Retuns: An instance of task class with the workflow parameters
+        """
         if task is None:
             if self.default_task is None:
                 raise RuntimeError('no default tasks set')
@@ -373,11 +446,18 @@ class Workflow(object):
 
 
 class WorkflowMulti(object):
+    """
+    A multi experiment workflow can be defined with multiple flows and separate parameters for each flow and a default task. It is mandatory to define the flows and parameters for each of the flows.
+
+    """
 
     def __init__(self, task = None, params = None, path=None):
         self.params = params
-        if params is not None and type(params) != dict:
-            raise Exception("Params has to be a dictionary with key defining the flow name")
+        if params is not None and type(params) not in [dict, list]:
+            raise Exception("Params has to be a dictionary with key defining the flow name or a list")
+        if type(params) == list:
+            params = {i:v for i,v in enumerate(params)}
+            self.params = params
         if params is None or len(params.keys())==0:
             raise Exception("Need to pass task parameters or use d6tflow.Workflow")
         self.default_task = task
@@ -386,6 +466,23 @@ class WorkflowMulti(object):
 
 
     def run(self, flow = None, tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, **kwargs):
+        """
+        Run tasks with the workflow parameters for a flow. See luigi.build for additional details
+
+        Args:
+            flow (string): The name of the experiment for which the flow is to be run. If nothing is passed, all the flows are run
+            tasks (class, list): task class or list of tasks class
+            forced (list): list of forced tasks
+            forced_all (bool): force all tasks
+            forced_all_upstream (bool): force all tasks including upstream
+            confirm (list): confirm invalidating tasks
+            workers (int): number of workers
+            abort (bool): on errors raise exception
+            execution_summary (bool): print execution summary
+            kwargs: keywords to pass to luigi.build
+
+        """
+
         if flow is not None:
             return self.workflow_objs[flow].run(tasks=tasks, forced=forced, forced_all=forced_all,
                                            forced_all_upstream=forced_all_upstream, confirm=confirm, workers=workers,
@@ -400,6 +497,18 @@ class WorkflowMulti(object):
 
 
     def outputLoad(self, flow = None, task=None, keys=None, as_dict=False, cached=False):
+        """
+        Load output from task with the workflow parameters for a flow
+
+        Args:
+            flow (string): The name of the experiment for which the flow is to be run. If nothing is passed, all the flows are run
+            task (class): task class
+            keys (list): list of data to load
+            as_dict (bool): cache data in memory
+            cached (bool): cache data in memory
+
+        Returns: list or dict of all task output
+        """
         if flow is not None:
             return self.workflow_objs[flow].outputLoad(task, keys, as_dict, cached)
         data = {}
@@ -417,6 +526,18 @@ class WorkflowMulti(object):
 
 
     def outputLoadAll(self, flow = None, task=None, keys=None, as_dict=False, cached=False):
+        """
+        Load all output from task with the workflow parameters for a flow
+
+        Args:
+            flow (string): The name of the experiment for which the flow is to be run. If nothing is passed, all the flows are run
+            task (class): task class
+            keys (list): list of data to load
+            as_dict (bool): cache data in memory
+            cached (bool): cache data in memory
+
+        Returns: list or dict of all task output
+        """
         if flow is not None:
             return self.workflow_objs[flow].outputLoadAll(task, keys, as_dict, cached)
         data = {}
@@ -437,6 +558,13 @@ class WorkflowMulti(object):
 
 
     def preview(self, flow = None, tasks = None, indent='', last=True, show_params=True, clip_params=False):
+        """
+        Preview task flows with the workflow parameters for a flow
+
+        Args:
+            flow (string): The name of the experiment for which the flow is to be run. If nothing is passed, all the flows are run
+            tasks (class, list): task class or list of tasks class
+        """
         if not isinstance(tasks, (list,)):
             tasks = [tasks]
         if flow is not None:
@@ -448,12 +576,27 @@ class WorkflowMulti(object):
 
 
     def set_default(self, task):
+        """
+        Set default task for the workflow. The default task is set for all the experiments
+
+        Args:
+            task(obj) The task to be set as a default task
+        """
         self.default_task = task
         for exp_name in self.params.keys():
             self.workflow_objs[exp_name].set_default(task)
 
 
     def get_task(self, flow = None, task = None):
+        """
+        Get task with the workflow parameters for a flow
+
+        Args:
+            flow (string): The name of the experiment for which the flow is to be run. If nothing is passed, all the flows are run
+            task(class): task class
+
+        Retuns: An instance of task class with the workflow parameters
+        """
         if task is None:
             if self.default_task is None:
                 raise RuntimeError('no default tasks set')
