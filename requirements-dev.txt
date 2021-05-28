@@ -7,3 +7,4 @@ dask[dataframe]
 d6tcollect
 datatable
 tensorflow
+pytest
