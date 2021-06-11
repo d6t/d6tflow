@@ -28,6 +28,7 @@ class TaskPreprocess(d6tflow.tasks.TaskPqPandas):
 @d6tflow.requires(TaskPreprocess) # automatically pass parameters upstream
 class TaskTrain(d6tflow.tasks.TaskPickle): # save output as pickle
     model = d6tflow.Parameter(default='ols') # parameter for model selection
+    scale = d6tflow.BoolParameter(default=False)
 
     def run(self):
         df_train = self.input().load()
@@ -175,7 +176,7 @@ class TestWorkflowMulti:
         from contextlib import redirect_stdout
 
         with io.StringIO() as buf, redirect_stdout(buf):
-            flow2.preview(TaskTrain, flow = 'experiment1')
+            flow2.preview(tasks = TaskTrain, flow = 'experiment1')
             output = buf.getvalue()
             assert output.count('PENDING')==0
             assert output.count('COMPLETE')==3
@@ -190,7 +191,7 @@ class TestWorkflowMulti:
         from contextlib import redirect_stdout
 
         with io.StringIO() as buf, redirect_stdout(buf):
-            flow2.preview(TaskTrain)
+            flow2.preview(flow = None, tasks = TaskTrain)
             output = buf.getvalue()
             assert output.count('PENDING')==0
             assert output.count('COMPLETE')==6
@@ -222,7 +223,7 @@ class TestWorkflowMulti:
                                   task=TaskTrain)
         flow2.run(flow = "experiment1")
 
-        out = flow2.outputLoad(TaskTrain)
+        out = flow2.outputLoad(task=TaskTrain)
         type(out).__name__ == "LogisticRegression"
 
 
