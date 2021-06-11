@@ -50,3 +50,22 @@ def traverse(t, path=None):
 def to_parquet(df, path, **kwargs):
     opts = {**{'compression': 'gzip', 'engine': 'pyarrow'}, **kwargs}
     df.to_parquet(path, **opts)
+
+
+def generate_exps_for_multi_param(params_dict, current_key = 0, multi_exp_dict = {}):
+    current_multi_exp_dict = {}
+    permutation_keys_list = list(params_dict.keys())
+    permutation_keys_list.sort()
+    input_key = permutation_keys_list[current_key]
+    for current_key_val in params_dict[input_key]:
+        if current_key == 0:
+            current_key_val_multi_exp_dict = {f'{input_key}_{current_key_val}': {f'{input_key}' : current_key_val}}
+            current_key_val_multi_exp_dict_results = generate_exps_for_multi_param(params_dict, current_key = current_key + 1, multi_exp_dict = current_key_val_multi_exp_dict)
+            current_multi_exp_dict = {**current_multi_exp_dict, **current_key_val_multi_exp_dict_results}
+        if current_key == len(permutation_keys_list) - 1:
+            current_multi_exp_dict = {**current_multi_exp_dict, **{f'{k}_{input_key}_{current_key_val}': {**v, **{f'{input_key}' : current_key_val}} for k,v in multi_exp_dict.items()}}
+        else:
+            current_key_val_multi_exp_dict = {f'{k}_{input_key}_{current_key_val}': {**v, **{f'{input_key}' : current_key_val}} for k,v in multi_exp_dict.items()}
+            current_key_val_multi_exp_dict_results = generate_exps_for_multi_param(params_dict, current_key = current_key + 1, multi_exp_dict = current_key_val_multi_exp_dict)
+            current_multi_exp_dict = {**current_multi_exp_dict, **current_key_val_multi_exp_dict_results}
+    return current_multi_exp_dict
