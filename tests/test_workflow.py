@@ -245,6 +245,19 @@ class TestWorkflowMulti:
         assert flow2.get_task(flow=2).param_kwargs['param1'] == 2
 
 
+    def test_multi_params_generator(self):
+        params = {'model': ['ols', 'gbm'], 'scale': [False, True]}
+        flow2 = d6tflow.WorkflowMulti(params = params, task=TaskTrain)
+        assert flow2.get_task(flow="model_ols_scale_False").param_kwargs["model"] == "ols"
+        assert flow2.get_task(flow="model_ols_scale_False").param_kwargs["scale"] == False
+        assert flow2.get_task(flow="model_ols_scale_True").param_kwargs["model"] == "ols"
+        assert flow2.get_task(flow="model_ols_scale_True").param_kwargs["scale"] == True
+        assert flow2.get_task(flow="model_gbm_scale_False").param_kwargs["model"] == "gbm"
+        assert flow2.get_task(flow="model_gbm_scale_False").param_kwargs["scale"] == False
+        assert flow2.get_task(flow="model_gbm_scale_True").param_kwargs["model"] == "gbm"
+        assert flow2.get_task(flow="model_gbm_scale_True").param_kwargs["scale"] == True
+
+
     def test_multi_get_task_with_list_params(self):
         params2 = {'param1': 2}
         params = {'param1': 1}
