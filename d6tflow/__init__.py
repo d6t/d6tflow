@@ -455,6 +455,9 @@ class WorkflowMulti(object):
         self.params = params
         if params is not None and type(params) not in [dict, list]:
             raise Exception("Params has to be a dictionary with key defining the flow name or a list")
+        if type(params) == dict:
+            if type(list(params.values())[0]) == list:
+                params = d6tflow.utils.generate_exps_for_multi_param(params)
         if type(params) == list:
             params = {i:v for i,v in enumerate(params)}
             self.params = params
