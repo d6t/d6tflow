@@ -48,15 +48,16 @@ def traverse(t, path=None):
             path = traverse(node, path)
     return path
 
-def _check_if_path_directory_exists(path):
-    split_path_list = path.split("/")
-    if len(split_path_list) == 1:
-        return True
-    dir_path = "/".join(split_path_list[:-1])
-    return os.path.isdir(dir_path)
+def ensure_dir(file_path):
+    directory = os.path.dirname(file_path)
+    if directory == "":
+        return
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 def to_parquet(df, path, **kwargs):
     opts = {**{'compression': 'gzip', 'engine': 'pyarrow'}, **kwargs}
+    ensure_dir(path)
     df.to_parquet(path, **opts)
 
 
