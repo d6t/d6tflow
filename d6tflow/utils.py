@@ -1,6 +1,7 @@
 # luigi.tools.deps_tree
 
 from luigi.task import flatten
+import os
 import warnings
 
 from luigi.tools.deps_tree import bcolors
@@ -46,6 +47,13 @@ def traverse(t, path=None):
         if not node in path:
             path = traverse(node, path)
     return path
+
+def _check_if_path_directory_exists(path):
+    split_path_list = path.split("/")
+    if len(split_path_list) == 1:
+        return True
+    dir_path = "/".join(split_path_list[:-1])
+    return os.path.isdir(dir_path)
 
 def to_parquet(df, path, **kwargs):
     opts = {**{'compression': 'gzip', 'engine': 'pyarrow'}, **kwargs}
