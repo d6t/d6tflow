@@ -1,6 +1,6 @@
 from d6tflow.targets import DataTarget
 import torch
-
+import d6tcollect
 
 class PyTorchModel(DataTarget):
 
@@ -19,7 +19,7 @@ class PyTorchModel(DataTarget):
         return super().load(torch.load, cached, **kwargs)
 
 
-
+    @d6tcollect._collectClass
     def save(self, model, **kwargs):
         """
         Save torch model

@@ -1,3 +1,10 @@
 fuckit
 pyarrow
-
+pandas
+luigi
+toolz
+dask[dataframe]
+d6tcollect
+datatable
+tensorflow
+pytest
