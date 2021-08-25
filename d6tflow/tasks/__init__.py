@@ -121,7 +121,7 @@ class TaskData(luigi.Task):
         Returns: list or dict of all task output
         """
 
-        if isinstance(self.requires(), dict) and task is not None:
+        if task is not None:
             input = self.input()[task]
         else:
             input = self.input()
@@ -144,6 +144,18 @@ class TaskData(luigi.Task):
             # Convert to list if dependency is single and as_dict is False
             if (type_of_requires != dict or task is not None) and not as_dict:
                 data = list(data.values())
+        elif isinstance(input, list):
+            data = []
+            for _target in input:
+                if isinstance(_target, dict):
+                    if as_dict:
+                        data.append({k: v.load(cached)
+                                     for k, v in _target.items()})
+                    else:
+                        data.append([v.load(cached)
+                                     for _, v in _target.items()])
+                else:
+                    data.append(_target.load(cached))
         else:
             data = input.load()
 
@@ -208,6 +220,13 @@ class TaskData(luigi.Task):
             for _input in inputs:
                 path = self._get_meta_path(inputs[_input])
                 output[_input] = pickle.load(open(path, "rb"))
+            return output
+        elif isinstance(self.requires(), list):
+            output = []
+            inputs = self.requires()
+            for _input in inputs:
+                path = self._get_meta_path(_input)
+                output.append(pickle.load(open(path, "rb")))
             return output
         else:
             _input = self.requires()
