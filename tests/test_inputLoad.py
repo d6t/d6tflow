@@ -124,6 +124,7 @@ def test_task_inputLoad_multiple_multiple_tuple():
             assert data[0]["output1"].equals(data[1]["output1"])
             assert data[0]["output2"].equals(data[1]["output2"])
 
+            assert isinstance(self.inputLoad(), list)
             data1a, data1b = self.inputLoad()[0]
             data2a, data2b = self.inputLoad()[1]
 

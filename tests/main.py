@@ -288,30 +288,30 @@ def test_functional_Flow():
     import d6tflow
     import pandas as pd
 
-    from d6tflow.functional import Flow
-    flow = Flow()
+    from d6tflow.functional import Workflow
+    flow = Workflow()
 
 
-    @flow.step(d6tflow.tasks.TaskCache)
+    @flow.task(d6tflow.tasks.TaskCache)
     @flow.persists(['a1', 'a2'])
     def get_data0(task):
         df = pd.DataFrame({'a':range(3)})
         task.save({'a1':df,'a2':df})
 
-    @flow.step(d6tflow.tasks.TaskCache)
+    @flow.task(d6tflow.tasks.TaskCache)
     @flow.persists(['a1', 'a2'])
     def get_data1(task):
         df = pd.DataFrame({'a':range(3)})
         task.save({'a1':df,'a2':df})
 
-    @flow.step(d6tflow.tasks.TaskCache)
+    @flow.task(d6tflow.tasks.TaskCache)
     @flow.requires(get_data0)
     def get_data2(task):
         df0 = task.inputLoad(as_dict=True)
         df = pd.DataFrame({'a':range(3)})
         task.save({'b1':df,'b2':df0})
 
-    @flow.step(d6tflow.tasks.TaskCache)
+    @flow.task(d6tflow.tasks.TaskCache)
     @flow.requires({"a":get_data1, "b":get_data2})
     @flow.persists(['aa'])
     def use_data(task):
@@ -323,11 +323,11 @@ def test_functional_Flow():
         output = pd.DataFrame({'a':range(4)})
         task.save({'aa':output})
 
-    flow.add_params({'multiplier': d6tflow.IntParameter(default=0)})
+    flow.add_global_params(multiplier=d6tflow.IntParameter(default=0))
     flow.run([use_data, get_data0], forced_all_upstream=True, confirm=False, params={'multiplier':42})
     flow.run(use_data, forced_all_upstream=True, confirm=False, params={'multiplier':42})
     dfo = pd.DataFrame({'a':range(4)})
-    assert flow.outputLoad(use_data, params={'multiplier':42})[0].equals(dfo)
+    assert flow.outputLoad(use_data)[0].equals(dfo)
     
 def test_params(cleanup):
     class TaskParam(d6tflow.tasks.TaskCache):

@@ -295,13 +295,6 @@ def inherits(*tasks_to_inherit):
 def requires(*tasks_to_require):
     #Check the type; if a dictionary call our custom requires decorator
     is_dict = isinstance(tasks_to_require[0], dict)
-    if len(tasks_to_require) > 1 and not is_dict:
-        if isinstance(tasks_to_require, tuple):
-            tasks_to_require = (dict(zip(range(len(tasks_to_require)),tasks_to_require)),)
-            return dict_requires(*tasks_to_require)
-        else:
-            raise TypeError("Please use a dictionary if you are passing multiple tasks to d6tflow.requires() \n \
-        Example: @d6tflow.requires({'task1': Task1, 'task2': Task2})")
     if is_dict:
         return dict_requires(*tasks_to_require)
     return luigi_requires(*tasks_to_require)
@@ -455,6 +448,9 @@ class WorkflowMulti(object):
         self.params = params
         if params is not None and type(params) not in [dict, list]:
             raise Exception("Params has to be a dictionary with key defining the flow name or a list")
+        if type(params) == dict:
+            if type(list(params.values())[0]) == list:
+                self.params = d6tflow.utils.generate_exps_for_multi_param(params)
         if type(params) == list:
             params = {i:v for i,v in enumerate(params)}
             self.params = params
