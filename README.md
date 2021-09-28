@@ -22,7 +22,7 @@ The workflow involves chaining together parameterized tasks which pass multiple 
 ## When to use d6tflow?
 
 * Data science: you want to build better models faster. Your workflow is EDA, feature engineering, model training and evaluation. d6tflow works with ANY ML library including sklearn, pytorch, keras
-* Data engineering: you want to build robust data pipelines using a lightweight yet powerful library. You workflow is load, filter, transform, join data in pandas, dask or pyspark.
+* Data engineering: you want to build robust data pipelines using a lightweight yet powerful library. You workflow is load, filter, transform, join data in pandas, dask, pyspark, sql, athena
 
 ## What can d6tflow do for you?
 
@@ -120,63 +120,7 @@ print(scores)
 
 * [Minimal example](https://github.com/d6t/d6tflow/blob/master/docs/example-minimal.py)
 * [Rapid Prototyping for Quantitative Investing with d6tflow](https://github.com/d6tdev/d6tflow-binder-interactive/blob/master/example-trading.ipynb) 
-* Chain together functions into a workflow and get the power of d6tflow with only little change in code. **[Jupyter notebook example](https://github.com/d6t/d6tflow/blob/master/docs/example-functional.ipynb)**
-Alternatively, chain together functions into a workflow and get the power of d6tflow with only little change in code. **[Jupyter notebook example](https://github.com/d6t/d6tflow/blob/master/docs/example-functional.ipynb)**
-
-## Example: Functional Workflow
-``` python
-import pandas as pd
-
-import d6tflow
-from d6tflow.functional import Workflow
-
-flow = Workflow()
-
-
-@flow.task(d6tflow.tasks.TaskPqPandas)
-def Task1(task):
-    df = pd.DataFrame({'a': range(3)})
-    task.save(df)
-
-
-@flow.task(d6tflow.tasks.TaskPqPandas)
-def Task2(task):
-    df = pd.DataFrame({'b': range(3)})
-    task.save(df)
-
-
-@flow.task(d6tflow.tasks.TaskPqPandas)
-@flow.params(multiplier=d6tflow.IntParameter(default=2))
-@flow.requires({'input1': Task1, 'input2': Task2})
-def Task3(task):
-    df1 = task.input()['input1'].load()  # quickly load input data
-    df2 = task.input()['input2'].load()  # quickly load input data
-    df = df1.join(df2, lsuffix='1', rsuffix='2')
-    df['c'] = df['a'] * task.multiplier  # use task parameter
-    task.save(df)
-
-
-flow.run(Task3)
-flow.outputLoad(Task3)
-'''
-   a  b  c
-0  0  0  0
-1  1  1  2
-2  2  2  4
-'''
-
-# You can rerun the flow with different parameters
-flow.run(Task3, params={'multiplier': 3})
-flow.outputLoad(Task3)
-
-'''
-   a  b  c
-0  0  0  0
-1  1  1  3
-2  2  2  6
-'''
-```
-
+* d6tflow with functions only: get the power of d6tflow with little change in code. **[Jupyter notebook example](https://github.com/d6t/d6tflow/blob/master/docs/example-functional.ipynb)**
 
 ## Documentation
 
@@ -194,9 +138,9 @@ Library usage and reference https://d6tflow.readthedocs.io
 
 Additional features:  
 * Team sharing of workflows and data
-* Integrations for enterprise and cloud storage (SQL, S3)
+* Integrations for datbase and cloud storage (SQL, S3)
 * Integrations for distributed compute (dask, pyspark)
-* Integrations for cloud execution
+* Integrations for cloud execution (athena)
 * Workflow deployment and scheduling
 
 [Schedule demo](https://calendly.com/databolt/30min)

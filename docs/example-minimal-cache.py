@@ -13,7 +13,7 @@ class Task2(Task1):
 
 # define another task that depends on data from task1 and task2
 @d6tflow.requires({'input1': Task1, 'input2': Task2})
-class Task3(d6tflow.tasks.TaskPqPandas):
+class Task3(d6tflow.tasks.TaskCache):
     multiplier = d6tflow.IntParameter(default=2)
 
     def run(self):

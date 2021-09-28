@@ -60,7 +60,7 @@ def preview(tasks, indent='', last=True, show_params=True, clip_params=False):
     print('\n ===== Luigi Execution Preview ===== \n')
 
 @d6tcollect.collect
-def run(tasks, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, **kwargs):
+def run(tasks, forced=None, forced_all=False, forced_all_upstream=False, confirm=False, workers=1, abort=True, execution_summary=None, **kwargs):
     """
     Run tasks locally. See luigi.build for additional details
 
@@ -151,7 +151,7 @@ def taskflow_downstream(task, task_downstream, only_complete=False):
         tasks = {t for t in tasks if t.complete()}
     return tasks
 
-def invalidate_all(confirm=True):
+def invalidate_all(confirm=False):
     """
     Invalidate all tasks by deleting all files in data directory
 
@@ -162,7 +162,7 @@ def invalidate_all(confirm=True):
     # record all tasks that run and their output vs files present
     raise NotImplementedError()
 
-def invalidate_orphans(confirm=True):
+def invalidate_orphans(confirm=False):
     """
     Invalidate all unused task outputs
 
@@ -182,7 +182,7 @@ def show(task):
     """
     preview(task)
 
-def invalidate_upstream(task, confirm=True):
+def invalidate_upstream(task, confirm=False):
     """
     Invalidate all tasks upstream tasks in a flow.
 
@@ -206,7 +206,7 @@ def invalidate_upstream(task, confirm=True):
     if c=='y':
         [t.invalidate(confirm=False) for t in tasks]
 
-def invalidate_downstream(task, task_downstream, confirm=True):
+def invalidate_downstream(task, task_downstream, confirm=False):
     """
     Invalidate all downstream tasks in a flow.
 
@@ -324,7 +324,7 @@ class Workflow(object):
         return preview(tasks = tasks_inst, indent = indent, last = last, show_params = show_params, clip_params = clip_params)
 
 
-    def run(self,tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, **kwargs):
+    def run(self,tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=False, workers=1, abort=True, execution_summary=None, **kwargs):
         """
         Run tasks with the workflow parameters. See luigi.build for additional details
 
@@ -385,12 +385,12 @@ class Workflow(object):
         return data_dict
 
 
-    def reset(self, task, confirm=True):
+    def reset(self, task, confirm=False):
         task_inst = self.get_task(task)
         return task_inst.reset(confirm)
 
 
-    def reset_downstream(self, task, task_downstream, confirm=True):
+    def reset_downstream(self, task, task_downstream, confirm=False):
         """
         Invalidate all downstream tasks in a flow.
 
@@ -406,7 +406,7 @@ class Workflow(object):
         return taskflow_downstream(task_inst, task_downstream_inst, confirm)
 
 
-    def reset_upstream(self, task, confirm=True):
+    def reset_upstream(self, task, confirm=False):
         task_inst = self.get_task(task)
         return invalidate_upstream(task_inst, confirm)
 
@@ -461,7 +461,7 @@ class WorkflowMulti(object):
             self.workflow_objs = {k: Workflow(task=task, params=v, path=path) for k, v in self.params.items()}
 
 
-    def run(self, flow = None, tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=True, workers=1, abort=True, execution_summary=None, **kwargs):
+    def run(self, flow = None, tasks=None, forced=None, forced_all=False, forced_all_upstream=False, confirm=False, workers=1, abort=True, execution_summary=None, **kwargs):
         """
         Run tasks with the workflow parameters for a flow. See luigi.build for additional details
 
@@ -542,12 +542,12 @@ class WorkflowMulti(object):
         return data
 
 
-    def reset(self, flow = None, task=None, confirm=True):
+    def reset(self, flow = None, task=None, confirm=False):
         if flow is not None:
             return self.workflow_objs[flow].reset(task, confirm)
         return {self.workflow_objs[exp_name].reset(task, confirm) for exp_name in self.params.keys()}
 
-    def reset_upstream(self, flow = None, task=None, confirm=True):
+    def reset_upstream(self, flow = None, task=None, confirm=False):
         if flow is not None:
             return self.workflow_objs[flow].reset(task, confirm)
         return {self.workflow_objs[exp_name].reset_upstream(task, confirm) for exp_name in self.params.keys()}
