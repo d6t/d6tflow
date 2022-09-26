@@ -192,6 +192,7 @@ Output data by default is saved in ``data/``, you can check with
     TaskTrain().output().path # file where task output is saved
 
 You can change where data is saved using ``d6tflow.set_dir('data/')``. See advanced options for :doc:`Sharing Workflows and Outputs <../collaborate>`
+Global Data Path can be also changed by including the ``path`` parameter to the Workflow.
 
 Changing Task Output Formats
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

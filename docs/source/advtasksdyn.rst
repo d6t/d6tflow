@@ -44,6 +44,17 @@ If you want to spawn multiple tasks without processing any of the outputs, you c
             yield self.clone(TrainModel1)
             yield self.clone(TrainModel2)
 
+Alternatively, you can achieve the same using the `WorkflowMulti` object with additional flexibility.
+
+.. code-block:: python
+
+    params = dict()
+    params_all = d6tflow.utils.params_generator_single({'param':['a','b']},params)
+
+    flow = d6tflow.WorkflowMulti(tasks_search.SearchModelTrain, params=params_all)
+    flow.run()
+
+
 If you want to run the workflow with multiple parameters at the same time, you can use `TaskAggregator` to yield multiple tasks.
 
 .. code-block:: python
