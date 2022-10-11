@@ -14,4 +14,10 @@ check_crc = False
 log_level = 'WARNING'
 execution_summary = True
 
+import luigi.task
+def set_parameter_len(nparams=20, len=64):
+    luigi.task.TASK_ID_INCLUDE_PARAMS=nparams
+    luigi.task.TASK_ID_TRUNCATE_PARAMS=len
+set_parameter_len()
+
 uri = None

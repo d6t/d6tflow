@@ -52,7 +52,7 @@ def traverse(t, path=None):
 
 def to_parquet(df, path, **kwargs):
     opts = {**{'compression': 'gzip', 'engine': 'pyarrow'}, **kwargs}
-    pathlib.Path(path).parent.mkdir(exists_ok=True)
+    pathlib.Path(path).parent.mkdir(exist_ok=True)
     df.to_parquet(path, **opts)
 
 
@@ -73,3 +73,15 @@ def generate_exps_for_multi_param(params_dict, current_key = 0, multi_exp_dict =
             current_key_val_multi_exp_dict_results = generate_exps_for_multi_param(params_dict, current_key = current_key + 1, multi_exp_dict = current_key_val_multi_exp_dict)
             current_multi_exp_dict = {**current_multi_exp_dict, **current_key_val_multi_exp_dict_results}
     return current_multi_exp_dict
+
+params_generator_multiple = generate_exps_for_multi_param
+
+def params_generator_single(dict_,params_base=None):
+    # example input: {'a':[1,2,3]}
+    key,list_=list(dict_.items())[0]
+
+    params = {}
+    for i, v in enumerate(list_):
+        params[i] = {**{key: v}, **params_base} if params_base is not None else {key: v}
+
+    return params

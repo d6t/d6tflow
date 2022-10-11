@@ -312,12 +312,8 @@ class Workflow:
         name = func_to_reset if isinstance(
             func_to_reset, str) else func_to_reset.__name__
         task = self.steps[name]()
-        if task.path:
-            dirpath = pathlib.Path(task.path)
-        else:
-            dirpath = d6tflow.settings.dirpath
 
-        path = task._getpath(dirpath, [])
+        path = task._getpath([])
         for f in path.parent.glob('*'):
             f.unlink()
 
