@@ -18,6 +18,7 @@ You can Export your tasks into a new File or print the tasks in the console.
 All parameters, paths, task_group will be exported.
 
 .. code-block:: python
+
     class Task1():
         def run(self):
             #Save
@@ -44,6 +45,7 @@ In more complex projects, users need to import data from many sources.
 Flows can be attached together in order to access the data generated in one flow inside the other.
 
 .. code-block:: python
+
     class Task1():
         def run(self):
             #Save
