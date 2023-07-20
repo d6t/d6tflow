@@ -134,15 +134,6 @@ Library usage and reference https://d6tflow.readthedocs.io
 
 [Data science project starter templates](https://github.com/d6t/d6tflow-template)
 
-## Accelerate Data Science
-
-Check out other d6t libraries, including  
-* push/pull data: quickly get and share data files like code
-* import data: quickly ingest messy raw CSV and XLS files to pandas, SQL and more
-* join data: quickly combine multiple datasets using fuzzy joins
-
-https://github.com/d6t/d6t-python
-
 ## Get notified
 
 `d6tflow` is in active development. Join the [databolt blog](http://blog.databolt.tech) for the latest announcements and tips+tricks.
