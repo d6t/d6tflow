@@ -134,10 +134,6 @@ Library usage and reference https://d6tflow.readthedocs.io
 
 [Data science project starter templates](https://github.com/d6t/d6tflow-template)
 
-## Get notified
-
-`d6tflow` is in active development. Join the [databolt blog](http://blog.databolt.tech) for the latest announcements and tips+tricks.
-
 ## Collecting Errors Messages and Usage statistics
 
 We have put a lot of effort into making this library useful to you. To help us make this library even better, it collects ANONYMOUS error messages and usage statistics. See [d6tcollect](https://github.com/d6t/d6tcollect) for details including how to disable collection. Collection is asynchronous and doesn't impact your code in any way.
