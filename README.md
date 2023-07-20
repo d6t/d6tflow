@@ -134,17 +134,6 @@ Library usage and reference https://d6tflow.readthedocs.io
 
 [Data science project starter templates](https://github.com/d6t/d6tflow-template)
 
-## Pro version
-
-Additional features:  
-* Team sharing of workflows and data
-* Integrations for datbase and cloud storage (SQL, S3)
-* Integrations for distributed compute (dask, pyspark)
-* Integrations for cloud execution (athena)
-* Workflow deployment and scheduling
-
-[Schedule demo](https://calendly.com/databolt/30min)
-
 ## Accelerate Data Science
 
 Check out other d6t libraries, including  
