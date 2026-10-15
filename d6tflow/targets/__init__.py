@@ -182,7 +182,7 @@ class CSVGZPandasTarget(CSVPandasTarget):
 
         """
         opts = {**{'index':False, 'compression':'gzip'},**kwargs}
-        return super().save(df, 'to_csv', **opts)
+        return super().save(df, **opts)
 
 class ExcelPandasTarget(DataTarget):
     """
