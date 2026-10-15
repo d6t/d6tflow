@@ -32,10 +32,10 @@ What kind of object you want to save determines which Task class you need to use
     * ``d6tflow.tasks.TaskSQLPandas``: save to SQL, load as pandas (premium, see below)
 * dicts
     * ``d6tflow.tasks.TaskJson``: save to JSON, load as python dict
-    * ``d6tflow.tasks.TaskPickle``: save to pickle, load as python list
+    * ``d6tflow.tasks.TaskPickle``: save to pickle, load as the original Python object
     * **NB**: don't save a dict of pandas dataframes as pickle, instead save as multiple outputs, see "save more than one output" in :doc:`Tasks <../tasks>`
 * any python object (eg trained models)
-    * ``d6tflow.tasks.TaskPickle``: save to pickle, load as python list
+    * ``d6tflow.tasks.TaskPickle``: save to pickle, load as the original Python object
     * ``d6tflow.tasks.TaskCache``: save to memory, load as python object
 * dask, SQL, pyspark: premium features, see below
 

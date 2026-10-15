@@ -87,7 +87,7 @@ If a task has parameters, it needs to be run separately for each parameter to be
 
 .. code-block:: python
 
-    flow = d6tflow.WorkflowMult(Task1, {'flow1':{'preprocess':False},'flow2':{'preprocess':True}})
+    flow = d6tflow.WorkflowMulti(Task1, {'flow1':{'preprocess':False},'flow2':{'preprocess':True}})
     flow.run() # will run all flow with all parameters
 
 Disable Dependency Checks
@@ -150,7 +150,7 @@ You have several options to force tasks to reset and rerun. See sections below o
     flow.reset(TaskGetData, confirm=False) # remove confirm=False to avoid accidentally deleting data
 
     # force execution including upstream tasks
-    flow.run([TaskTrain()],forced_all=True, confirm=False)
+    flow.run([TaskTrain],forced_all=True, confirm=False)
 
     # force run everything
     flow.run(forced_all_upstream=True, confirm=False)
@@ -172,7 +172,7 @@ As long as the parameter is defined in the task, d6tflow will automatically reru
 
 .. code-block:: python
 
-    flow = d6tflow.WorkflowMult(Task1, {'flow1':{'preprocess':False},'flow2':{'preprocess':True}})
+    flow = d6tflow.WorkflowMulti(Task1, {'flow1':{'preprocess':False},'flow2':{'preprocess':True}})
     flow.run() # executes 2 flows, one for each task
 
 For d6tflow to intelligently figure out which tasks to rerun, the parameter has to be defined in the task. The downstream task (`TaskTrain`) has to pass on the parameter to the upstream task (`TaskPreprocess`).

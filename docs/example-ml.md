@@ -25,7 +25,7 @@ import pandas as pd
 class GetData(d6tflow.tasks.TaskPqPandas):  # save dataframe as parquet
 
     def run(self):
-        ds = sklearn.datasets.load_boston()
+        ds = sklearn.datasets.load_diabetes()
         df_train = pd.DataFrame(ds.data, columns=ds.feature_names)
         df_train['y'] = ds.target
         self.save(df_train) # quickly save dataframe
@@ -53,9 +53,9 @@ class ModelTrain(d6tflow.tasks.TaskPickle): # save output as pickle
             model = sklearn.ensemble.GradientBoostingRegressor()
         else:
             raise ValueError('invalid model selection')
-        model.fit(df_train.drop('y',1), df_train['y'])
+        model.fit(df_train.drop('y', axis=1), df_train['y'])
         self.save(model)
-        self.saveMeta({'score':model.score(df_train.drop('y',1), df_train['y'])})
+        self.saveMeta({'score':model.score(df_train.drop('y', axis=1), df_train['y'])})
 
 # goal: compare performance of two models
 params_model1 = {'do_preprocess':True, 'model':'ols'}
@@ -64,7 +64,7 @@ params_model2 = {'do_preprocess':False, 'model':'gbm'}
 # define workflow manager
 flow = d6tflow.WorkflowMulti(ModelTrain, {'ols':params_model1, 'gbm':params_model2})
 flow.reset_upstream(confirm=False) # force re-run
-print(flow.preview('ols'))
+flow.preview(flow='ols')
 
 # intelligently figures out which part of the workflow need to run for each model
 # for example when training model 2, GetData() does not need to run again
@@ -90,16 +90,14 @@ data = flow.outputLoadAll()
 
 scores = flow.outputLoadMeta()
 print(scores)
-# {'ols': {'score': 0.7406426641094095}, 'gbm': {'score': 0.9761405838418584}}
+# {'ols': {'score': ...}, 'gbm': {'score': ...}}
 
 # get training data and models
 data_train = flow.outputLoad(task=ModelData)
 models = flow.outputLoad(task=ModelTrain)
 
-print(models['ols'].score(data_train['ols'].drop('y',1), data_train['ols']['y']))
-# 0.7406426641094095
-print(models['gbm'].score(data_train['gbm'].drop('y',1), data_train['gbm']['y']))
-# 0.9761405838418584
+print(models['ols'].score(data_train['ols'].drop('y', axis=1), data_train['ols']['y']))
+print(models['gbm'].score(data_train['gbm'].drop('y', axis=1), data_train['gbm']['y']))
 
 ```
 

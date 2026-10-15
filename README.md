@@ -86,7 +86,7 @@ class GetData(d6tflow.tasks.TaskPqPandas):
     persist = ['x','y']
 
     def run(self):
-        ds = sklearn.datasets.load_boston()
+        ds = sklearn.datasets.load_diabetes()
         df_trainX = pd.DataFrame(ds.data, columns=ds.feature_names)
         df_trainY = pd.DataFrame(ds.target, columns=['target'])
         self.save({'x': df_trainX, 'y': df_trainY}) # persist/cache training data
@@ -125,7 +125,7 @@ Scheduled 2 tasks
 
 scores = flow.outputLoadMeta()  # load model scores
 print(scores)
-# {'model1': {'score': 0.7406426641094095}, 'gbm': {'model2': 0.9761405838418584}}
+# {'model1': {'score': ...}, 'model2': {'score': ...}}
 
 
 ```

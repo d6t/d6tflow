@@ -24,7 +24,7 @@ Just pass the parameters values, everything else is the same.
 
 .. code-block:: python
 
-    d6tflow.run(TaskTrain() # use default do_preprocess=True, model='xgboost'
+    d6tflow.run(TaskTrain()) # use default do_preprocess=True, model='xgboost'
     d6tflow.run(TaskTrain(do_preprocess=False, model='nnet')) # specify non-default parameters
     # or
     params = dict(do_preprocess=False, model='nnet')

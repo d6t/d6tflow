@@ -135,6 +135,7 @@ Below is an example of passing a 'multiplier' paramter to a functional task.
 
 .. code-block:: python
 
+    @flow.task(d6tflow.tasks.TaskCache)
     @flow.params(multiplier=d6tflow.IntParameter(default=0))
     def print_parameter(task):
         print(task.multiplier)
