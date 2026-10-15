@@ -733,7 +733,7 @@ class WorkflowMulti(object):
 
     def reset_downstream(self, task=None, flow=None, confirm=False):
         if flow is not None:
-            return self.workflow_objs[flow].reset(task, confirm)
+            return self.workflow_objs[flow].reset_downstream(task, confirm=confirm)
         
         # For multiple flows, ask for confirmation once if confirm=True
         if not self._confirm_reset(confirm, "reset_downstream"):
@@ -743,7 +743,7 @@ class WorkflowMulti(object):
 
     def reset_upstream(self, task=None, flow=None, confirm=False):
         if flow is not None:
-            return self.workflow_objs[flow].reset(task, confirm)
+            return self.workflow_objs[flow].reset_upstream(task, confirm=confirm)
         
         # For multiple flows, ask for confirmation once if confirm=True
         if not self._confirm_reset(confirm, "reset_upstream"):
