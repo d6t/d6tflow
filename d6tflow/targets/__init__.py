@@ -236,18 +236,17 @@ class ExcelPandasSheetsTarget(_LocalPathTarget):
         """
         if self.exists():
             if not cached or not settings.cached or self.path not in cache:
-                sheet_name = keys if keys is not None else None
-                data = pd.read_excel(self.path, sheet_name=sheet_name, **kwargs)
-                if cached or settings.cached:
-                    cache[self.path] = data
-                return data
+                if not (cached or settings.cached):
+                    return pd.read_excel(self.path, sheet_name=keys, **kwargs)
+                data = pd.read_excel(self.path, sheet_name=None, **kwargs)
+                cache[self.path] = data
             else:
                 data = cache.get(self.path)
-                if keys is None:
-                    return data
-                if isinstance(keys, str):
-                    return data[keys]
-                return {k: v for k, v in data.items() if k in keys}
+            if keys is None:
+                return data
+            if isinstance(keys, str):
+                return data[keys]
+            return {k: v for k, v in data.items() if k in keys}
         else:
             raise RuntimeError('Target does not exist, make sure task is complete')
 
